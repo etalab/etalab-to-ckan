@@ -45,6 +45,7 @@ import wenoio
 
 app_name = os.path.splitext(os.path.basename(__file__))[0]
 args = None
+existing_organizations_name = None
 group_id_by_name = {}
 group_name_by_organization_name = {}
 html_parser = etree.HTMLParser()
@@ -52,22 +53,7 @@ organization_group_line_re = re.compile(ur'(?P<organization>.+)\s+\d+\s+(?P<grou
 log = logging.getLogger(app_name)
 new_organization_by_name = {}
 organization_id_by_name = {}
-organization_name_by_name = {
-    u'conseil-general-de-loir-et-cher': u'conseil-general-du-loir-et-cher',
-    u'institut-geographique-national': u'institut-national-de-l-information-geographique-et-forestiere',
-    u'ministere-de-l-agriculture-de-l-alimentation-de-la-peche-de-la-ruralite-et-de-l-amenagement-du-te': u'ministere-de-l-agriculture-de-l-agroalimentaire-et-de-la-foret',
-    u'ministere-de-l-ecologie-du-developpement-durable-des-transports-et-du-logement': u'ministere-de-l-ecologie-du-developpement-durable-et-de-l-energie',
-    u'ministere-de-l-economie-des-finances-et-de-l-industrie': u'ministere-de-l-economie-et-des-finances',
-    u'ministere-de-l-economie-des-finances-et-de-l-industrie-institut-national-de-la-statistique-et-des': u'institut-national-de-la-statistique-et-des-etudes-economiques-insee',
-    u'ministere-de-l-education-nationale-de-la-jeunesse-et-de-la-vie-associative': u'ministere-de-l-education-nationale',
-    u'ministere-de-l-ecologie-du-developpement-durable-des-transports-et-du-logement': u'ministere-de-l-egalite-des-territoires-et-du-logement',
-    u'ministere-de-l-interieur-de-l-outre-mer-des-collectivites-territoriales-et-de-l-immigration': u'ministere-de-l-interieur',
-    u'ministere-de-la-culture-et-de-la-communication-departement-de-l-enseignement-superieur-de-la-reche': u'ministere-de-l-enseignement-superieur-et-de-la-recherche',
-    u'ministere-de-la-defense-et-des-anciens-combattants': u'ministere-de-la-defense',
-    u'ministere-de-la-justice-et-des-libertes': u'ministere-de-la-justice',
-    u'ministere-des-affaires-etrangeres-et-europeennes': u'ministere-des-affaires-etrangeres',
-    u'ministere-des-sports': u'ministere-des-sports-de-la-jeunesse-de-l-education-populaire-et-de-la-vie-associative',
-    }
+organization_titles_by_name = {}
 
 
 def main():
@@ -95,6 +81,14 @@ def main():
     job = wenoio.init(authentication_server_url = args.auth, email = args.email, local_nodes_path = args.local,
         password = args.password, server_url = args.wenodata)
 
+    # Retrieve group id (needed for update).
+    request = urllib2.Request('http://ckan.quoi-ou.fr/api/3/action/organization_list')
+    request.add_header('Authorization', args.user_api_key)
+    response = urllib2.urlopen(request)
+    response_dict = json.loads(response.read())
+    global existing_organizations_name
+    existing_organizations_name = set(response_dict['result'])
+
     # Load organizations from data.gouv.fr and upload them to CKAN.
     log.info('Updating organizations from data.gouv.fr')
     response = urllib2.urlopen('http://www.data.gouv.fr/Producteurs')
@@ -110,6 +104,18 @@ def main():
             title = title,
             )
 #    log.info('Organizations: {}'.format(sorted(organization_id_by_name.iterkeys())))
+
+    # Load hierarchy of organizations from file.
+    log.info('Updating organizations hierarchy from file')
+    with open('organizations-hierarchy.txt') as organizations_file:
+        for line in organizations_file:
+            line = line.decode('utf-8').strip()
+            assert line.count(u';;') == 2, line.encode('utf-8')
+            old_title, main_title, sub_title = line.split(u';;')
+            old_name = strings.slugify(old_title)[:100]
+            main_title = main_title.strip() or None
+            if main_title is not None:
+                organization_titles_by_name[old_name] = (main_title, sub_title.strip() or None)
 
     # Load other organizations from file.
     log.info('Updating other organizations from file')
@@ -197,17 +203,23 @@ def main():
             package_name = u'{}-{}'.format(strings.slugify(entry['Titre'])[:100 - len(wenodata_id_str) - 1],
                 wenodata_id_str)
             source_name = strings.slugify(entry.get('Source'))[:100]
-            organization_name = organization_name_by_name.get(source_name, source_name)  # Repair source name.
+            organization_titles = organization_titles_by_name.get(source_name)
+            if organization_titles is None:
+                organization_title = entry.get('Source')
+                organization_sub_title = None
+            else:
+                organization_title, organization_sub_title = organization_titles
+            organization_name = strings.slugify(organization_title)[:100]
             organization_id = organization_id_by_name.get(organization_name, UnboundLocalError)
             if organization_id is UnboundLocalError:
-                organization_id = upsert_organization(title = entry['Source'])
+                organization_id = upsert_organization(title = organization_title)
             package = dict(
-                author = entry.get('Source'),  # TODO
+                author = organization_title,  # TODO
 #                author_email = ,
 #                extras (list of dataset extra dictionaries) – the dataset’s extras (optional), extras are arbitrary (key: value) metadata items that can be added to datasets, each extra dictionary should have keys 'key' (a string), 'value' (a string), and optionally 'deleted'
                 # groups is added below.
 #                license_id (license id string) – the id of the dataset’s license, see license_list() for available values (optional)
-                maintainer = None,  # Don't duplicate with the author, because it is useless.
+                maintainer = organization_sub_title or u'',  # Don't duplicate with the author, because it is useless.
 #                maintainer_email = ,
                 name = package_name,
                 notes = entry.get('Description'),
@@ -307,16 +319,24 @@ def main():
 #                created_package = response_dict['result']
 #                pprint.pprint(created_package)
 
-#    response = requests.post('http://www.nosdonnees.fr/api/action/package_list', data = json.dumps({}),
-#        headers = {'content-type': 'application/json'})
-#    print response.status_code
-#    print response.text
+    print existing_organizations_name
+    for organization_name in existing_organizations_name:
+        # Retrieve organization id (needed for delete).
+        request = urllib2.Request('http://ckan.quoi-ou.fr/api/3/action/organization_show?id={}'.format(
+            organization_name))
+        request.add_header('Authorization', args.user_api_key)
+        response = urllib2.urlopen(request)
+        response_dict = json.loads(response.read())
+        existing_organization = response_dict['result']
 
-#    response = requests.post('http://api-opendata.hauts-de-seine.net/api/action/package_list', data = json.dumps({}),
-#        headers = {'content-type': 'application/json'})
-#    print response
-#    print response.status_code
-#    print response.text
+        # TODO: To replace with organization_purge when it is available.
+        request = urllib2.Request('http://ckan.quoi-ou.fr/api/3/action/organization_delete?id={}'.format(
+            organization_name))
+        request.add_header('Authorization', args.user_api_key)
+        response = urllib2.urlopen(request, urllib.quote(json.dumps(existing_organization)))
+        response_dict = json.loads(response.read())
+#        deleted_organization = response_dict['result']
+#        pprint.pprint(deleted_organization)
 
     return 0
 
@@ -413,64 +433,65 @@ def upsert_organization(description = None, image_url = None, title = None):
         organization['name'] = name
         if organization.get('title') is None:
             organization['title'] = title
-    request = urllib2.Request('http://ckan.quoi-ou.fr/api/3/action/organization_create')
-    request.add_header('Authorization', args.user_api_key)
-    try:
-        response = urllib2.urlopen(request, urllib.quote(json.dumps(organization)))
-    except urllib2.HTTPError as response:
-        response_text = response.read()
+    if name in existing_organizations_name:
+        existing_organizations_name.remove(name)
+
+        # Retrieve organization id (needed for update).
+        request = urllib2.Request('http://ckan.quoi-ou.fr/api/3/action/organization_show?id={}'.format(name))
+        request.add_header('Authorization', args.user_api_key)
+        response = urllib2.urlopen(request)
+        response_dict = json.loads(response.read())
+        existing_organization = response_dict['result']
+
+        organization['id'] = existing_organization['id']
+        request = urllib2.Request('http://ckan.quoi-ou.fr/api/3/action/organization_update?id={}'.format(name))
+        request.add_header('Authorization', args.user_api_key)
         try:
-            response_dict = json.loads(response_text)
-        except ValueError:
-            log.error(u'An exception occured while creating organization: {0}'.format(organization))
-            log.error(response_text)
-            organization_id_by_name[name] = None
-            return None
-        if response.code == 409 and response_dict.get('error', {}).get('name'):
-            # Package already exists. Update it.
-
-            # Retrieve organization id (needed for update).
-            request = urllib2.Request('http://ckan.quoi-ou.fr/api/3/action/organization_show?id={}'.format(name))
-            request.add_header('Authorization', args.user_api_key)
-            response = urllib2.urlopen(request)
-            response_dict = json.loads(response.read())
-            existing_organization = response_dict['result']
-
-            organization['id'] = existing_organization['id']
-            request = urllib2.Request('http://ckan.quoi-ou.fr/api/3/action/organization_update?id={}'.format(name))
-            request.add_header('Authorization', args.user_api_key)
+            response = urllib2.urlopen(request, urllib.quote(json.dumps(organization)))
+        except urllib2.HTTPError as response:
+            response_text = response.read()
             try:
-                response = urllib2.urlopen(request, urllib.quote(json.dumps(organization)))
-            except urllib2.HTTPError as response:
-                response_text = response.read()
-                try:
-                    response_dict = json.loads(response_text)
-                except ValueError:
-                    log.error(u'An exception occured while updating organization: {0}'.format(organization))
-                    log.error(response_text)
-                    organization_id_by_name[name] = None
-                    return None
-                print '\n\nupdate'
-                for key, value in response_dict.iteritems():
-                    print '{} = {}'.format(key, value)
-            else:
-                assert response.code == 200
-                response_dict = json.loads(response.read())
-                assert response_dict['success'] is True
+                response_dict = json.loads(response_text)
+            except ValueError:
+                log.error(u'An exception occured while updating organization: {0}'.format(organization))
+                log.error(response_text)
+                organization_id_by_name[name] = None
+                return None
+            print '\n\nupdate'
+            for key, value in response_dict.iteritems():
+                print '{} = {}'.format(key, value)
+            return None
+        else:
+            assert response.code == 200
+            response_dict = json.loads(response.read())
+            assert response_dict['success'] is True
 #                    updated_organization = response_dict['result']
 #                    pprint.pprint(updated_organization)
-        else:
+    else:
+        request = urllib2.Request('http://ckan.quoi-ou.fr/api/3/action/organization_create')
+        request.add_header('Authorization', args.user_api_key)
+        try:
+            response = urllib2.urlopen(request, urllib.quote(json.dumps(organization)))
+        except urllib2.HTTPError as response:
+            response_text = response.read()
+            try:
+                response_dict = json.loads(response_text)
+            except ValueError:
+                log.error(u'An exception occured while creating organization: {0}'.format(organization))
+                log.error(response_text)
+                organization_id_by_name[name] = None
+                return None
             print '\n\ncreate'
             for key, value in response_dict.iteritems():
                 print '{} = {}'.format(key, value)
-            raise
-    else:
-        assert response.code == 200
-        response_dict = json.loads(response.read())
-        assert response_dict['success'] is True
-        created_organization = response_dict['result']
+            return None
+        else:
+            assert response.code == 200
+            response_dict = json.loads(response.read())
+            assert response_dict['success'] is True
+            created_organization = response_dict['result']
 #            pprint.pprint(created_organization)
-        organization['id'] = created_organization['id']
+            organization['id'] = created_organization['id']
     assert organization['name'] == name
     organization_id_by_name[name] = organization['id']
     return organization['id']

@@ -79,3 +79,5 @@ Au service de la société, l'Office prépare avec ses partenaires la forêt et 
 
 
 http://ckan.easter-eggs.com/organization/resot-alsace;;http://www.resot-alsace.fr/extranet2/sites/default/files/pixture_reloaded_logo.png;;Le Réseau des Offices de Tourisme d'Alsace (RésOT-Alsace) fédère les 55 offices de tourisme et syndicats d'intiative de la région. Il a son siège au 4 boulevard Foch - 67600 Sélestat. Il est soutenu financièrement par : la Région Alsace, le Département du Bas-Rhin, le Département du Haut-Rhin et la CCI de Strasbourg et sa Région.
+
+http://ckan.easter-eggs.com/organization/observatoire-francais-des-drogues-et-des-toxicomanies;;http://www.ofdt.fr/ofdtdev/live/images/logo-p.gif;;Organisme public chargé du recueil, de l'analyse et de la synthèse des données relatives aux drogues illicites, à l'alcool, au tabac et aux jeux de hasard et d'argent en France.

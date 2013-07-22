@@ -28,23 +28,30 @@
 
 
 import argparse
+import ConfigParser
 import json
 import logging
 import os
-import pprint
+#import pprint
 import re
 import sys
 import urllib
 import urllib2
 import urlparse
 
-from biryani1 import strings
+from biryani1 import baseconv, custom_conv, datetimeconv, states, strings
 from lxml import etree
 import wenoio
 
 
 app_name = os.path.splitext(os.path.basename(__file__))[0]
 args = None
+ckan_headers = None
+conf = None
+conv = custom_conv(baseconv, datetimeconv, states)
+existing_groups_name = None
+existing_package_name_by_wenodata_id_str = {}
+existing_packages_name = None
 existing_organizations_name = None
 group_id_by_name = {}
 group_name_by_organization_name = {}
@@ -52,44 +59,112 @@ html_parser = etree.HTMLParser()
 organization_group_line_re = re.compile(ur'(?P<organization>.+)\s+\d+\s+(?P<group>.+)$')
 log = logging.getLogger(app_name)
 new_organization_by_name = {}
+package_name_re = re.compile(ur'.+-(?P<wenodata_id>\d{6,8})$')
 organization_id_by_name = {}
 organization_titles_by_name = {}
 
 
+# Level-1 Converters
+
+
+ckan_json_to_package_list = conv.pipe(
+    conv.test_isinstance(list),
+    conv.uniform_sequence(
+        conv.pipe(
+            conv.test_isinstance(basestring),
+            conv.empty_to_none,
+            conv.not_none,
+            ),
+        ),
+    conv.not_none,
+    conv.empty_to_none,
+    )
+
+
+# Functions
+
+
 def main():
     parser = argparse.ArgumentParser(description = __doc__)
+    parser.add_argument('config', help = 'path of configuration file')
     parser.add_argument('-o', '--offset', help = 'index of first dataset to import', type = int)
-    parser.add_argument('-u', '--user-api-key', help = 'CKAN user API key', required = True)
     parser.add_argument('-v', '--verbose', action = 'store_true', help = 'increase output verbosity')
-
-    server_group = parser.add_argument_group('Wenodata server')
-    server_group.add_argument('-w', '--wenodata', help = 'URL of Wenodata server')
-
-    local_group = parser.add_argument_group('Local Wenodata tree')
-    local_group.add_argument('-l', '--local', help = 'local directory containing Wenodata datasets')
-
-    authentication_group = parser.add_argument_group('Wenodata servers authentication')
-    authentication_group.add_argument('-a', '--auth', default = 'https://wenou.wenoit.org',
-        help = 'authentication server URL (Wenou)')
-    authentication_group.add_argument('-e', '--email', help = 'authentication email address')
-    authentication_group.add_argument('-p', '--password', help = 'authentication password')
 
     global args
     args = parser.parse_args()
     logging.basicConfig(level = logging.DEBUG if args.verbose else logging.WARNING, stream = sys.stdout)
 
-    job = wenoio.init(authentication_server_url = args.auth, email = args.email, local_nodes_path = args.local,
-        password = args.password, server_url = args.wenodata)
+    config_parser = ConfigParser.SafeConfigParser(dict(here = os.path.dirname(args.config)))
+    config_parser.read(args.config)
+    global conf
+    conf = conv.check(conv.pipe(
+        conv.test_isinstance(dict),
+        conv.struct(
+            {
+                'ckan.api_key': conv.pipe(
+                    conv.cleanup_line,
+                    conv.not_none,
+                    ),
+                'ckan.site_url': conv.pipe(
+                    conv.make_input_to_url(error_if_fragment = True, error_if_path = True, error_if_query = True,
+                        full = True),
+                    conv.not_none,
+                    ),
+                'user_agent': conv.pipe(
+                    conv.cleanup_line,
+                    conv.not_none,
+                    ),
+                'wenodata.site_url': conv.pipe(
+                    conv.make_input_to_url(error_if_fragment = True, error_if_path = True, error_if_query = True,
+                        full = True),
+                    conv.not_none,
+                    ),
+                },
+            default = 'drop',
+            ),
+        conv.not_none,
+        ))(dict(config_parser.items('Etalab-to-CKAN')), conv.default_state)
 
-    # Retrieve group id (needed for update).
-    request = urllib2.Request('http://ckan.quoi-ou.fr/api/3/action/organization_list')
-    request.add_header('Authorization', args.user_api_key)
+    global ckan_headers
+    ckan_headers = {
+        'Authorization': conf['ckan.api_key'],
+        'User-Agent': conf['user_agent'],
+        }
+    job = wenoio.init(server_url = conf['wenodata.site_url'])
+
+    # Retrieve names of packages already existing in CKAN.
+    request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'], '/api/3/action/package_list'),
+        headers = ckan_headers)
+    response = urllib2.urlopen(request)
+    response_dict = json.loads(response.read())
+    global existing_packages_name
+    existing_packages_name = set(conv.check(conv.pipe(
+        ckan_json_to_package_list,
+        conv.not_none,
+        ))(response_dict['result'], state = conv.default_state))
+    # Keep Etalab datasets by their number.
+    for package_name in existing_packages_name:
+        match = package_name_re.match(package_name)
+        if match is not None:
+            existing_package_name_by_wenodata_id_str[match.group('wenodata_id')] = package_name
+
+    # Retrieve names of groups already existing in CKAN.
+    request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'], '/api/3/action/group_list'),
+        headers = ckan_headers)
+    response = urllib2.urlopen(request)
+    response_dict = json.loads(response.read())
+    global existing_groups_name
+    existing_groups_name = set(response_dict['result'])
+
+    # Retrieve names of organizations already existing in CKAN.
+    request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'], '/api/3/action/organization_list'),
+        headers = ckan_headers)
     response = urllib2.urlopen(request)
     response_dict = json.loads(response.read())
     global existing_organizations_name
     existing_organizations_name = set(response_dict['result'])
 
-    # Load organizations from data.gouv.fr and upload them to CKAN.
+    # Load organizations from data.gouv.fr.
     log.info('Updating organizations from data.gouv.fr')
     response = urllib2.urlopen('http://www.data.gouv.fr/Producteurs')
     html_element = etree.fromstring(response.read(), html_parser)
@@ -103,7 +178,6 @@ def main():
             image_url = image_url,
             title = title,
             )
-#    log.info('Organizations: {}'.format(sorted(organization_id_by_name.iterkeys())))
 
     # Load hierarchy of organizations from file.
     log.info('Updating organizations hierarchy from file')
@@ -274,65 +348,81 @@ def main():
                     package['groups'] = [
                         dict(id = group_id),
                         ]
-            request = urllib2.Request('http://ckan.quoi-ou.fr/api/3/action/package_create')
-            request.add_header('Authorization', args.user_api_key)
-            try:
-                response = urllib2.urlopen(request, urllib.quote(json.dumps(package)))
-            except urllib2.HTTPError as response:
-                response_text = response.read()
+            existing_package_name = existing_package_name_by_wenodata_id_str.get(wenodata_id_str)
+            if existing_package_name is None:
+                request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'], '/api/3/action/package_create'),
+                    headers = ckan_headers)
                 try:
-                    response_dict = json.loads(response_text)
-                except ValueError:
-                    log.error(u'{0} - An exception occured while creating package: {1}'.format(index, package))
-                    log.error(response_text)
-                    continue
-                if response.code == 409 and response_dict.get('error', {}).get('name'):
-                    # Package already exists. Update it.
-                    request = urllib2.Request('http://ckan.quoi-ou.fr/api/3/action/package_update?id={}'.format(
-                        package_name))
-                    request.add_header('Authorization', args.user_api_key)
+                    response = urllib2.urlopen(request, urllib.quote(json.dumps(package)))
+                except urllib2.HTTPError as response:
+                    response_text = response.read()
                     try:
-                        response = urllib2.urlopen(request, urllib.quote(json.dumps(package)))
-                    except urllib2.HTTPError as response:
-                        response_text = response.read()
-                        try:
-                            response_dict = json.loads(response_text)
-                        except ValueError:
-                            log.error(u'{0} - An exception occured while updating package: {1}'.format(index, package))
-                            log.error(response_text)
-                            continue
-                        for key, value in response_dict.iteritems():
-                            print '{} = {}'.format(key, value)
-                    else:
-                        assert response.code == 200
-                        response_dict = json.loads(response.read())
-                        assert response_dict['success'] is True
-#                        updated_package = response_dict['result']
-#                        pprint.pprint(updated_package)
-                else:
+                        response_dict = json.loads(response_text)
+                    except ValueError:
+                        log.error(u'{0} - An exception occured while creating package: {1}'.format(index, package))
+                        log.error(response_text)
+                        continue
                     for key, value in response_dict.iteritems():
                         print '{} = {}'.format(key, value)
+                else:
+                    assert response.code == 200
+                    response_dict = json.loads(response.read())
+                    assert response_dict['success'] is True
+#                    created_package = response_dict['result']
+#                    pprint.pprint(created_package)
             else:
-                assert response.code == 200
-                response_dict = json.loads(response.read())
-                assert response_dict['success'] is True
-#                created_package = response_dict['result']
-#                pprint.pprint(created_package)
+                request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
+                    '/api/3/action/package_update?id={}'.format(existing_package_name)), headers = ckan_headers)
+                try:
+                    response = urllib2.urlopen(request, urllib.quote(json.dumps(package)))
+                except urllib2.HTTPError as response:
+                    response_text = response.read()
+                    try:
+                        response_dict = json.loads(response_text)
+                    except ValueError:
+                        log.error(u'{0} - An exception occured while updating package: {1}'.format(index, package))
+                        log.error(response_text)
+                        continue
+                    for key, value in response_dict.iteritems():
+                        print '{} = {}'.format(key, value)
+                else:
+                    assert response.code == 200
+                    response_dict = json.loads(response.read())
+                    assert response_dict['success'] is True
+#                    updated_package = response_dict['result']
+#                    pprint.pprint(updated_package)
 
-    print existing_organizations_name
+    # TODO: Change this, once groups have been created directly in CKAN.
+    print 'Obsolete group: {}'.format(existing_groups_name)
+    for group_name in existing_groups_name:
+        # Retrieve group id (needed for delete).
+        request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
+            '/api/3/action/group_show?id={}'.format(group_name)), headers = ckan_headers)
+        response = urllib2.urlopen(request)
+        response_dict = json.loads(response.read())
+        existing_group = response_dict['result']
+
+        # TODO: To replace with group_purge when it is available.
+        request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
+            '/api/3/action/group_delete?id={}'.format(group_name)), headers = ckan_headers)
+        response = urllib2.urlopen(request, urllib.quote(json.dumps(existing_group)))
+        response_dict = json.loads(response.read())
+#        deleted_group = response_dict['result']
+#        pprint.pprint(deleted_group)
+
+    # TODO: Change this, once organizations have been created directly in CKAN.
+    print 'Obsolete organization: {}'.format(existing_organizations_name)
     for organization_name in existing_organizations_name:
         # Retrieve organization id (needed for delete).
-        request = urllib2.Request('http://ckan.quoi-ou.fr/api/3/action/organization_show?id={}'.format(
-            organization_name))
-        request.add_header('Authorization', args.user_api_key)
+        request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
+            '/api/3/action/organization_show?id={}'.format(organization_name)), headers = ckan_headers)
         response = urllib2.urlopen(request)
         response_dict = json.loads(response.read())
         existing_organization = response_dict['result']
 
         # TODO: To replace with organization_purge when it is available.
-        request = urllib2.Request('http://ckan.quoi-ou.fr/api/3/action/organization_delete?id={}'.format(
-            organization_name))
-        request.add_header('Authorization', args.user_api_key)
+        request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
+            '/api/3/action/organization_delete?id={}'.format(organization_name)), headers = ckan_headers)
         response = urllib2.urlopen(request, urllib.quote(json.dumps(existing_organization)))
         response_dict = json.loads(response.read())
 #        deleted_organization = response_dict['result']
@@ -356,64 +446,65 @@ def upsert_group(description = None, image_url = None, title = None):
 #        groups (list of dictionaries) – the groups that belong to the group, a list of dictionaries each with key 'name' (string, the id or name of the group) and optionally 'capacity' (string, the capacity in which the group is a member of the group)
 #        users (list of dictionaries) – the users that belong to the group, a list of dictionaries each with key 'name' (string, the id or name of the user) and optionally 'capacity' (string, the capacity in which the user is a member of the group)
         )
-    request = urllib2.Request('http://ckan.quoi-ou.fr/api/3/action/group_create')
-    request.add_header('Authorization', args.user_api_key)
-    try:
-        response = urllib2.urlopen(request, urllib.quote(json.dumps(group)))
-    except urllib2.HTTPError as response:
-        response_text = response.read()
+    if name in existing_groups_name:
+        existing_groups_name.remove(name)
+
+        # Retrieve group id (needed for update).
+        request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
+            '/api/3/action/group_show?id={}'.format(name)), headers = ckan_headers)
+        response = urllib2.urlopen(request)
+        response_dict = json.loads(response.read())
+        existing_group = response_dict['result']
+
+        group['id'] = existing_group['id']
+        request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
+            '/api/3/action/group_update?id={}'.format(name)), headers = ckan_headers)
         try:
-            response_dict = json.loads(response_text)
-        except ValueError:
-            log.error(u'An exception occured while creating group: {0}'.format(group))
-            log.error(response_text)
-            group_id_by_name[name] = None
-            return None
-        if response.code == 409 and response_dict.get('error', {}).get('name'):
-            # Package already exists. Update it.
-
-            # Retrieve group id (needed for update).
-            request = urllib2.Request('http://ckan.quoi-ou.fr/api/3/action/group_show?id={}'.format(name))
-            request.add_header('Authorization', args.user_api_key)
-            response = urllib2.urlopen(request)
-            response_dict = json.loads(response.read())
-            existing_group = response_dict['result']
-
-            group['id'] = existing_group['id']
-            request = urllib2.Request('http://ckan.quoi-ou.fr/api/3/action/group_update?id={}'.format(name))
-            request.add_header('Authorization', args.user_api_key)
+            response = urllib2.urlopen(request, urllib.quote(json.dumps(group)))
+        except urllib2.HTTPError as response:
+            response_text = response.read()
             try:
-                response = urllib2.urlopen(request, urllib.quote(json.dumps(group)))
-            except urllib2.HTTPError as response:
-                response_text = response.read()
-                try:
-                    response_dict = json.loads(response_text)
-                except ValueError:
-                    log.error(u'An exception occured while updating group: {0}'.format(group))
-                    log.error(response_text)
-                    group_id_by_name[name] = None
-                    return None
-                print '\n\nupdate'
-                for key, value in response_dict.iteritems():
-                    print '{} = {}'.format(key, value)
-            else:
-                assert response.code == 200
-                response_dict = json.loads(response.read())
-                assert response_dict['success'] is True
+                response_dict = json.loads(response_text)
+            except ValueError:
+                log.error(u'An exception occured while updating group: {0}'.format(group))
+                log.error(response_text)
+                group_id_by_name[name] = None
+                return None
+            print '\n\nupdate'
+            for key, value in response_dict.iteritems():
+                print '{} = {}'.format(key, value)
+            return None
+        else:
+            assert response.code == 200
+            response_dict = json.loads(response.read())
+            assert response_dict['success'] is True
 #                    updated_group = response_dict['result']
 #                    pprint.pprint(updated_group)
-        else:
+    else:
+        request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'], '/api/3/action/group_create'),
+            headers = ckan_headers)
+        try:
+            response = urllib2.urlopen(request, urllib.quote(json.dumps(group)))
+        except urllib2.HTTPError as response:
+            response_text = response.read()
+            try:
+                response_dict = json.loads(response_text)
+            except ValueError:
+                log.error(u'An exception occured while creating group: {0}'.format(group))
+                log.error(response_text)
+                group_id_by_name[name] = None
+                return None
             print '\n\ncreate'
             for key, value in response_dict.iteritems():
                 print '{} = {}'.format(key, value)
-            raise
-    else:
-        assert response.code == 200
-        response_dict = json.loads(response.read())
-        assert response_dict['success'] is True
-        created_group = response_dict['result']
+            return None
+        else:
+            assert response.code == 200
+            response_dict = json.loads(response.read())
+            assert response_dict['success'] is True
+            created_group = response_dict['result']
 #            pprint.pprint(created_group)
-        group['id'] = created_group['id']
+            group['id'] = created_group['id']
     assert group['name'] == name
     group_id_by_name[name] = group['id']
     return group['id']
@@ -437,15 +528,15 @@ def upsert_organization(description = None, image_url = None, title = None):
         existing_organizations_name.remove(name)
 
         # Retrieve organization id (needed for update).
-        request = urllib2.Request('http://ckan.quoi-ou.fr/api/3/action/organization_show?id={}'.format(name))
-        request.add_header('Authorization', args.user_api_key)
+        request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
+            '/api/3/action/organization_show?id={}'.format(name)), headers = ckan_headers)
         response = urllib2.urlopen(request)
         response_dict = json.loads(response.read())
         existing_organization = response_dict['result']
 
         organization['id'] = existing_organization['id']
-        request = urllib2.Request('http://ckan.quoi-ou.fr/api/3/action/organization_update?id={}'.format(name))
-        request.add_header('Authorization', args.user_api_key)
+        request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
+            '/api/3/action/organization_update?id={}'.format(name)), headers = ckan_headers)
         try:
             response = urllib2.urlopen(request, urllib.quote(json.dumps(organization)))
         except urllib2.HTTPError as response:
@@ -468,8 +559,8 @@ def upsert_organization(description = None, image_url = None, title = None):
 #                    updated_organization = response_dict['result']
 #                    pprint.pprint(updated_organization)
     else:
-        request = urllib2.Request('http://ckan.quoi-ou.fr/api/3/action/organization_create')
-        request.add_header('Authorization', args.user_api_key)
+        request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'], '/api/3/action/organization_create'),
+            headers = ckan_headers)
         try:
             response = urllib2.urlopen(request, urllib.quote(json.dumps(organization)))
         except urllib2.HTTPError as response:

@@ -56,6 +56,9 @@ existing_organizations_name = None
 group_id_by_name = {}
 group_name_by_organization_name = {}
 html_parser = etree.HTMLParser()
+license_id_by_title = {
+    u'Licence Ouverte/Open Licence': u'fr-lo',
+    }
 organization_group_line_re = re.compile(ur'(?P<organization>.+)\s+\d+\s+(?P<group>.+)$')
 log = logging.getLogger(app_name)
 new_organization_by_name = {}
@@ -295,12 +298,28 @@ def main():
             organization_id = organization_id_by_name.get(organization_name, UnboundLocalError)
             if organization_id is UnboundLocalError:
                 organization_id = upsert_organization(title = organization_title)
+            license_id = conv.check(conv.pipe(
+                conv.test_in(license_id_by_title),
+                conv.translate(license_id_by_title)
+                ))(entry.get('Licence', {}).get('Titre'), state = conv.default_state)
+            extras = [
+                dict(
+                    # deleted = True,
+                    key = key,
+                    value = value,
+                    )
+                for key, value in entry.iteritems()
+                if key not in (u'Date de dernière modification, 'u'Date de publication', u'Description',
+                    u'Documents annexes', u'Données', u'Licence', u'Mots-clés', u'Source', u'Titre')
+                if isinstance(value, basestring)
+                ]
+
             package = dict(
                 author = organization_title,  # TODO
 #                author_email = ,
-#                extras (list of dataset extra dictionaries) – the dataset’s extras (optional), extras are arbitrary (key: value) metadata items that can be added to datasets, each extra dictionary should have keys 'key' (a string), 'value' (a string), and optionally 'deleted'
+                extras = extras,
                 # groups is added below.
-#                license_id (license id string) – the id of the dataset’s license, see license_list() for available values (optional)
+                license_id = license_id,
                 maintainer = organization_sub_title or u'',  # Don't duplicate with the author, because it is useless.
 #                maintainer_email = ,
                 name = package_name,
@@ -310,13 +329,14 @@ def main():
 #                relationships_as_subject (list of relationship dictionaries) – see package_relationship_create() for the format of relationship dictionaries (optional)
                 resources = [
                     dict(
-                        # package_id (string) – id of package that the resource needs should be added to.
+                        created = entry.get(u'Date de publication'),
                         format = data.get('Format'),
+                        last_modified = entry.get(u'Date de dernière modification'),
                         name = data.get('Titre'),
+                        # package_id (string) – id of package that the resource needs should be added to.
                         url = data['URL'],
 #                        revision_id – (optional)
 #                        description (string) – (optional)
-#                        format (string) – (optional)
 #                        hash (string) – (optional)
 #                        resource_type (string) – (optional)
 #                        mimetype (string) – (optional)
@@ -324,12 +344,10 @@ def main():
 #                        webstore_url (string) – (optional)
 #                        cache_url (string) – (optional)
 #                        size (int) – (optional)
-#                        created (iso date string) – (optional)
-#                        last_modified (iso date string) – (optional)
 #                        cache_last_updated (iso date string) – (optional)
 #                        webstore_last_updated (iso date string) – (optional)
                         )
-                    for data in entry.get(u'Données', [])
+                    for data in entry.get(u'Données', []) + entry.get(u'Documents annexes', [])
                     ],
                 # state = 'active',
                 tags = [

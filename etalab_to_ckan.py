@@ -409,8 +409,34 @@ def main():
                         log.error(u'{0} - An exception occured while creating package: {1}'.format(index, package))
                         log.error(response_text)
                         continue
-                    for key, value in response_dict.iteritems():
-                        print '{} = {}'.format(key, value)
+                    error = response_dict.get('error', {})
+                    if error.get('__type') == u'Validation Error' and error.get('name'):
+                        # A package with the same name already exists. Maybe it is deleted. Undelete it.
+                        package['state'] = 'active'
+                        request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
+                            '/api/3/action/package_update?id={}'.format(package_name)), headers = ckan_headers)
+                        try:
+                            response = urllib2.urlopen(request, urllib.quote(json.dumps(package)))
+                        except urllib2.HTTPError as response:
+                            response_text = response.read()
+                            try:
+                                response_dict = json.loads(response_text)
+                            except ValueError:
+                                log.error(u'{0} - An exception occured while undeleting package: {1}'.format(
+                                    index, package))
+                                log.error(response_text)
+                                continue
+                            for key, value in response_dict.iteritems():
+                                print '{} = {}'.format(key, value)
+                        else:
+                            assert response.code == 200
+                            response_dict = json.loads(response.read())
+                            assert response_dict['success'] is True
+#                            updated_package = response_dict['result']
+#                            pprint.pprint(updated_package)
+                    else:
+                        for key, value in response_dict.iteritems():
+                            print '{} = {}'.format(key, value)
                 else:
                     assert response.code == 200
                     response_dict = json.loads(response.read())

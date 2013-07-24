@@ -309,7 +309,7 @@ def main():
                     value = value,
                     )
                 for key, value in entry.iteritems()
-                if key not in (u'Date de dernière modification, 'u'Date de publication', u'Description',
+                if key not in (u'Date de dernière modification', u'Date de publication', u'Description',
                     u'Documents annexes', u'Données', u'Licence', u'Mots-clés', u'Source', u'Titre')
                 if isinstance(value, basestring)
                 ]

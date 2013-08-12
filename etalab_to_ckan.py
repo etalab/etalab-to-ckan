@@ -256,12 +256,12 @@ def main():
                 url = url.split('?', 1)[0]
                 if url in (
                         u'http://www.bdm.insee.fr/bdm2/choixCriteres.action',  # 2104
-                        u'http://www.bdm.insee.fr/bdm2/exporterSeries.action',  #  2104
-                        u'http://www.recensement-2008.insee.fr/exportXLS.action',  #  9996
-                        u'http://www.recensement-2008.insee.fr/tableauxDetailles.action',  #  9996
-                        u'http://www.stats.environnement.developpement-durable.gouv.fr/Eider/selection_series_popup.do',  #  55553
-                        u'http://www.recensement-2008.insee.fr/chiffresCles.action',  #  281832
-                        u'http://www.recensement-2008.insee.fr/exportXLSCC.action',  #  281832
+                        u'http://www.bdm.insee.fr/bdm2/exporterSeries.action',  # 2104
+                        u'http://www.recensement-2008.insee.fr/exportXLS.action',  # 9996
+                        u'http://www.recensement-2008.insee.fr/tableauxDetailles.action',  # 9996
+                        u'http://www.stats.environnement.developpement-durable.gouv.fr/Eider/selection_series_popup.do',  # 55553
+                        u'http://www.recensement-2008.insee.fr/chiffresCles.action',  # 281832
+                        u'http://www.recensement-2008.insee.fr/exportXLSCC.action',  # 281832
                         ):
                     ignore_dataset = True
                     break

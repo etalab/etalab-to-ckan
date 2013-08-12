@@ -271,7 +271,8 @@ def main():
             log.info(u'Upserting dataset {0} - {1}'.format(index, entry['Titre']))
 
             etalab_id_str = str(etalab_id)
-            package_name = u'{}-{}'.format(strings.slugify(entry['Titre'])[:100 - len(etalab_id_str) - 1],
+            package_title = u' '.join(entry['Titre'].split())  # Cleanup multiple spaces.
+            package_name = u'{}-{}'.format(strings.slugify(package_title)[:100 - len(etalab_id_str) - 1],
                 etalab_id_str)
             source_name = strings.slugify(entry.get('Source'))[:100]
             organization_titles = organization_titles_by_name.get(source_name)
@@ -356,7 +357,7 @@ def main():
                         created = entry.get(u'Date de publication'),
                         format = data.get('Format'),
                         last_modified = entry.get(u'Date de dernière modification'),
-                        name = data.get('Titre'),
+                        name = u' '.join(data['Titre'].split()) if data.get('Titre') else None,  # Cleanup spaces.
                         # package_id (string) – id of package that the resource needs should be added to.
                         url = data['URL'],
 #                        revision_id – (optional)
@@ -386,7 +387,7 @@ def main():
                         )
                     if len(tag_name) >= 2
                     ],
-                title = entry['Titre'],
+                title = package_title,
 #                type (string) – the type of the dataset (optional), IDatasetForm plugins associate themselves with different dataset types and provide custom dataset handling behaviour for these types
 #                url (string) – a URL for the dataset’s source (optional)
 #                version (string, no longer than 100 characters) – (optional)

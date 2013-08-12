@@ -33,6 +33,7 @@ import json
 import logging
 import os
 #import pprint
+import random
 import re
 import sys
 import urllib
@@ -72,6 +73,8 @@ period_re = re.compile(ur'du (?P<day_from>[012]\d|3[01])/(?P<month_from>0\d|1[01
 def main():
     parser = argparse.ArgumentParser(description = __doc__)
     parser.add_argument('config', help = 'path of configuration file')
+    parser.add_argument('-d', '--dry-run', action = 'store_true',
+        help = "simulate import, don't update CKAN repository")
     parser.add_argument('-o', '--offset', help = 'index of first dataset to import', type = int)
     parser.add_argument('-r', '--reset', action = 'store_true',
         help = 'erase content of CKAN database not imported by this script')
@@ -292,10 +295,48 @@ def main():
                     value = value,
                     )
                 for key, value in entry.iteritems()
-                if key not in (u'Date de dernière modification', u'Date de publication', u'Description',
-                    u'Documents annexes', u'Données', u'Licence', u'Mots-clés', u'Source', u'Titre')
+                if key not in (
+                    u'Couverture géographique',
+                    u'Date de dernière modification',
+                    u'Date de publication',
+                    u'Description',
+                    u'Documents annexes',
+                    u'Données',
+                    u'Licence',
+                    u'Mots-clés',
+                    u'Période',
+                    u'Source',
+                    u'Titre',
+                    )
                 if isinstance(value, basestring)
                 ]
+
+            period = entry.get(u'Période')
+            if period is not None:
+                match = period_re.match(period)
+                assert match is not None, period
+                extras.append(dict(
+                    key = u'temporal_coverage_from',
+                    value = u'{}-{}-{}'.format(match.group('year_from'), match.group('month_from'),
+                        match.group('day_from')),
+                    ))
+                year_to = match.group('year_to')
+                if year_to == u'9999':
+                    year_to = '2013'
+                extras.append(dict(
+                    key = u'temporal_coverage_to',
+                    value = u'{}-{}-{}'.format(year_to, match.group('month_to'), match.group('day_to')),
+                    ))
+
+            territorial_coverage = entry.get(u'Territoires couverts')
+            if territorial_coverage:
+                extras.append(dict(
+                    key = u'territorial_coverage',
+                    value = u','.join(
+                        u'{}/{}'.format(territory['kind'], territory['code'])
+                        for territory in territorial_coverage
+                        ),
+                    ))
 
             package = dict(
                 author = organization_title,  # TODO
@@ -359,27 +400,28 @@ def main():
                         ]
             if package_name in existing_packages_name:
                 existing_packages_name.remove(package_name)
-                request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
-                    '/api/3/action/package_update?id={}'.format(package_name)), headers = ckan_headers)
-                try:
-                    response = urllib2.urlopen(request, urllib.quote(json.dumps(package)))
-                except urllib2.HTTPError as response:
-                    response_text = response.read()
+                if not args.dry_run:
+                    request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
+                        '/api/3/action/package_update?id={}'.format(package_name)), headers = ckan_headers)
                     try:
-                        response_dict = json.loads(response_text)
-                    except ValueError:
-                        log.error(u'{0} - An exception occured while updating package: {1}'.format(index, package))
-                        log.error(response_text)
-                        continue
-                    for key, value in response_dict.iteritems():
-                        print '{} = {}'.format(key, value)
-                else:
-                    assert response.code == 200
-                    response_dict = json.loads(response.read())
-                    assert response_dict['success'] is True
-#                    updated_package = response_dict['result']
-#                    pprint.pprint(updated_package)
-            else:
+                        response = urllib2.urlopen(request, urllib.quote(json.dumps(package)))
+                    except urllib2.HTTPError as response:
+                        response_text = response.read()
+                        try:
+                            response_dict = json.loads(response_text)
+                        except ValueError:
+                            log.error(u'{0} - An exception occured while updating package: {1}'.format(index, package))
+                            log.error(response_text)
+                            continue
+                        for key, value in response_dict.iteritems():
+                            print '{} = {}'.format(key, value)
+                    else:
+                        assert response.code == 200
+                        response_dict = json.loads(response.read())
+                        assert response_dict['success'] is True
+#                        updated_package = response_dict['result']
+#                        pprint.pprint(updated_package)
+            elif not args.dry_run:
                 request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'], '/api/3/action/package_create'),
                     headers = ckan_headers)
                 try:
@@ -428,57 +470,60 @@ def main():
 #                    pprint.pprint(created_package)
 
     print 'Obsolete packages: {}'.format(existing_packages_name)
-    for package_name in existing_packages_name:
-        # Retrieve package id (needed for delete).
-        request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
-            '/api/3/action/package_show?id={}'.format(package_name)), headers = ckan_headers)
-        response = urllib2.urlopen(request)
-        response_dict = json.loads(response.read())
-        existing_package = response_dict['result']
+    if not args.dry_run:
+        for package_name in existing_packages_name:
+            # Retrieve package id (needed for delete).
+            request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
+                '/api/3/action/package_show?id={}'.format(package_name)), headers = ckan_headers)
+            response = urllib2.urlopen(request)
+            response_dict = json.loads(response.read())
+            existing_package = response_dict['result']
 
-        # TODO: To replace with package_purge when it is available.
-        request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
-            '/api/3/action/package_delete?id={}'.format(package_name)), headers = ckan_headers)
-        response = urllib2.urlopen(request, urllib.quote(json.dumps(existing_package)))
-        response_dict = json.loads(response.read())
-#        deleted_package = response_dict['result']
-#        pprint.pprint(deleted_package)
+            # TODO: To replace with package_purge when it is available.
+            request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
+                '/api/3/action/package_delete?id={}'.format(package_name)), headers = ckan_headers)
+            response = urllib2.urlopen(request, urllib.quote(json.dumps(existing_package)))
+            response_dict = json.loads(response.read())
+#            deleted_package = response_dict['result']
+#            pprint.pprint(deleted_package)
 
     if args.reset:
         print 'Obsolete groups: {}'.format(existing_groups_name)
-        for group_name in existing_groups_name:
-            # Retrieve group id (needed for delete).
-            request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
-                '/api/3/action/group_show?id={}'.format(group_name)), headers = ckan_headers)
-            response = urllib2.urlopen(request)
-            response_dict = json.loads(response.read())
-            existing_group = response_dict['result']
+        if not args.dry_run:
+            for group_name in existing_groups_name:
+                # Retrieve group id (needed for delete).
+                request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
+                    '/api/3/action/group_show?id={}'.format(group_name)), headers = ckan_headers)
+                response = urllib2.urlopen(request)
+                response_dict = json.loads(response.read())
+                existing_group = response_dict['result']
 
-            # TODO: To replace with group_purge when it is available.
-            request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
-                '/api/3/action/group_delete?id={}'.format(group_name)), headers = ckan_headers)
-            response = urllib2.urlopen(request, urllib.quote(json.dumps(existing_group)))
-            response_dict = json.loads(response.read())
-#            deleted_group = response_dict['result']
-#            pprint.pprint(deleted_group)
+                # TODO: To replace with group_purge when it is available.
+                request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
+                    '/api/3/action/group_delete?id={}'.format(group_name)), headers = ckan_headers)
+                response = urllib2.urlopen(request, urllib.quote(json.dumps(existing_group)))
+                response_dict = json.loads(response.read())
+#                deleted_group = response_dict['result']
+#                pprint.pprint(deleted_group)
 
     if args.reset:
         print 'Obsolete organizations: {}'.format(existing_organizations_name)
-        for organization_name in existing_organizations_name:
-            # Retrieve organization id (needed for delete).
-            request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
-                '/api/3/action/organization_show?id={}'.format(organization_name)), headers = ckan_headers)
-            response = urllib2.urlopen(request)
-            response_dict = json.loads(response.read())
-            existing_organization = response_dict['result']
+        if not args.dry_run:
+            for organization_name in existing_organizations_name:
+                # Retrieve organization id (needed for delete).
+                request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
+                    '/api/3/action/organization_show?id={}'.format(organization_name)), headers = ckan_headers)
+                response = urllib2.urlopen(request)
+                response_dict = json.loads(response.read())
+                existing_organization = response_dict['result']
 
-            # TODO: To replace with organization_purge when it is available.
-            request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
-                '/api/3/action/organization_delete?id={}'.format(organization_name)), headers = ckan_headers)
-            response = urllib2.urlopen(request, urllib.quote(json.dumps(existing_organization)))
-            response_dict = json.loads(response.read())
-#            deleted_organization = response_dict['result']
-#            pprint.pprint(deleted_organization)
+                # TODO: To replace with organization_purge when it is available.
+                request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
+                    '/api/3/action/organization_delete?id={}'.format(organization_name)), headers = ckan_headers)
+                response = urllib2.urlopen(request, urllib.quote(json.dumps(existing_organization)))
+                response_dict = json.loads(response.read())
+#                deleted_organization = response_dict['result']
+#                pprint.pprint(deleted_organization)
 
     return 0
 
@@ -531,8 +576,11 @@ def upsert_group(description = None, image_url = None, title = None):
 #            assert response.code == 200
 #            response_dict = json.loads(response.read())
 #            assert response_dict['success'] is True
-##                    updated_group = response_dict['result']
-##                    pprint.pprint(updated_group)
+##            updated_group = response_dict['result']
+##            pprint.pprint(updated_group)
+    elif args.dry_run:
+        # Generate a random group iD.
+        group['id'] = u'{}-{}'.format(group['name'], random.randrange(1000000))
     else:
         request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'], '/api/3/action/group_create'),
             headers = ckan_headers)
@@ -588,29 +636,33 @@ def upsert_organization(description = None, image_url = None, title = None):
         existing_organization = response_dict['result']
 
         organization['id'] = existing_organization['id']
-        request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
-            '/api/3/action/organization_update?id={}'.format(name)), headers = ckan_headers)
-        try:
-            response = urllib2.urlopen(request, urllib.quote(json.dumps(organization)))
-        except urllib2.HTTPError as response:
-            response_text = response.read()
+        if not args.dry_run:
+            request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
+                '/api/3/action/organization_update?id={}'.format(name)), headers = ckan_headers)
             try:
-                response_dict = json.loads(response_text)
-            except ValueError:
-                log.error(u'An exception occured while updating organization: {0}'.format(organization))
-                log.error(response_text)
-                organization_id_by_name[name] = None
+                response = urllib2.urlopen(request, urllib.quote(json.dumps(organization)))
+            except urllib2.HTTPError as response:
+                response_text = response.read()
+                try:
+                    response_dict = json.loads(response_text)
+                except ValueError:
+                    log.error(u'An exception occured while updating organization: {0}'.format(organization))
+                    log.error(response_text)
+                    organization_id_by_name[name] = None
+                    return None
+                print '\n\nupdate'
+                for key, value in response_dict.iteritems():
+                    print '{} = {}'.format(key, value)
                 return None
-            print '\n\nupdate'
-            for key, value in response_dict.iteritems():
-                print '{} = {}'.format(key, value)
-            return None
-        else:
-            assert response.code == 200
-            response_dict = json.loads(response.read())
-            assert response_dict['success'] is True
-#                    updated_organization = response_dict['result']
-#                    pprint.pprint(updated_organization)
+            else:
+                assert response.code == 200
+                response_dict = json.loads(response.read())
+                assert response_dict['success'] is True
+#                updated_organization = response_dict['result']
+#                pprint.pprint(updated_organization)
+    elif args.dry_run:
+        # Generate a random organization iD.
+        organization['id'] = u'{}-{}'.format(organization['name'], random.randrange(1000000))
     else:
         request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'], '/api/3/action/organization_create'),
             headers = ckan_headers)

@@ -40,6 +40,7 @@ import urllib2
 import urlparse
 
 from biryani1 import baseconv, custom_conv, datetimeconv, states, strings
+from ckantoolbox import ckanconv
 from lxml import etree
 import wenoio
 
@@ -48,7 +49,7 @@ app_name = os.path.splitext(os.path.basename(__file__))[0]
 args = None
 ckan_headers = None
 conf = None
-conv = custom_conv(baseconv, datetimeconv, states)
+conv = custom_conv(baseconv, ckanconv, datetimeconv, states)
 etalab_package_name_re = re.compile(ur'.+-(?P<etalab_id>\d{6,8})$')
 existing_groups_name = None
 existing_packages_name = None
@@ -64,26 +65,8 @@ log = logging.getLogger(app_name)
 new_organization_by_name = {}
 organization_id_by_name = {}
 organization_titles_by_name = {}
-
-
-# Level-1 Converters
-
-
-ckan_json_to_package_list = conv.pipe(
-    conv.test_isinstance(list),
-    conv.uniform_sequence(
-        conv.pipe(
-            conv.test_isinstance(basestring),
-            conv.empty_to_none,
-            conv.not_none,
-            ),
-        ),
-    conv.not_none,
-    conv.empty_to_none,
-    )
-
-
-# Functions
+period_re = re.compile(ur'du (?P<day_from>[012]\d|3[01])/(?P<month_from>0\d|1[012])/(?P<year_from>[012]\d\d\d)' \
+    ur' au (?P<day_to>[012]\d|3[01])/(?P<month_to>0\d|1[012])/(?P<year_to>[012]\d\d\d|9999)$')
 
 
 def main():
@@ -145,7 +128,7 @@ def main():
     if args.reset:
         # Keep the names of all existing datasets.
         existing_packages_name = set(conv.check(conv.pipe(
-            ckan_json_to_package_list,
+            conv.ckan_json_to_package_list,
             conv.not_none,
             ))(response_dict['result'], state = conv.default_state))
     else:
@@ -153,7 +136,7 @@ def main():
         existing_packages_name = set(
             package_name
             for package_name in conv.check(conv.pipe(
-                ckan_json_to_package_list,
+                conv.ckan_json_to_package_list,
                 conv.not_none,
                 ))(response_dict['result'], state = conv.default_state)
             if etalab_package_name_re.match(package_name) is not None

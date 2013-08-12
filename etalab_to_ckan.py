@@ -29,6 +29,7 @@
 
 import argparse
 import ConfigParser
+import csv
 import json
 import logging
 import os
@@ -63,11 +64,22 @@ license_id_by_title = {
     }
 organization_group_line_re = re.compile(ur'(?P<organization>.+)\s+\d+\s+(?P<group>.+)$')
 log = logging.getLogger(app_name)
+packages_merge = []
 new_organization_by_name = {}
 organization_id_by_name = {}
 organization_titles_by_name = {}
-period_re = re.compile(ur'du (?P<day_from>[012]\d|3[01])/(?P<month_from>0\d|1[012])/(?P<year_from>[012]\d\d\d)' \
+package_by_name = {}
+period_re = re.compile(ur'du (?P<day_from>[012]\d|3[01])/(?P<month_from>0\d|1[012])/(?P<year_from>[012]\d\d\d)'
     ur' au (?P<day_to>[012]\d|3[01])/(?P<month_to>0\d|1[012])/(?P<year_to>[012]\d\d\d|9999)$')
+
+
+def get_package_extra(package, key, default = UnboundLocalError):
+    for extra in package['extras']:
+        if extra['key'] == key:
+            return extra['value']
+    if default is UnboundLocalError:
+        raise KeyError(key)
+    return default
 
 
 def main():
@@ -203,8 +215,8 @@ def main():
                         image_url = image_url,
                         )
                 organization_url, image_url, description = line.strip().split(u';;')
-                assert organization_url.startswith(u'http://ckan.easter-eggs.com/organization/')
-                name = organization_url[len(u'http://ckan.easter-eggs.com/organization/'):].strip()
+                assert organization_url.startswith(u'http://ckan.etalab2.fr/organization/')
+                name = organization_url[len(u'http://ckan.etalab2.fr/organization/'):].strip()
                 image_url = image_url.strip()
                 description = description.strip()
             else:
@@ -312,33 +324,6 @@ def main():
                 if isinstance(value, basestring)
                 ]
 
-            period = entry.get(u'Période')
-            if period is not None:
-                match = period_re.match(period)
-                assert match is not None, period
-                extras.append(dict(
-                    key = u'temporal_coverage_from',
-                    value = u'{}-{}-{}'.format(match.group('year_from'), match.group('month_from'),
-                        match.group('day_from')),
-                    ))
-                year_to = match.group('year_to')
-                if year_to == u'9999':
-                    year_to = '2013'
-                extras.append(dict(
-                    key = u'temporal_coverage_to',
-                    value = u'{}-{}-{}'.format(year_to, match.group('month_to'), match.group('day_to')),
-                    ))
-
-            territorial_coverage = entry.get(u'Territoires couverts')
-            if territorial_coverage:
-                extras.append(dict(
-                    key = u'territorial_coverage',
-                    value = u','.join(
-                        u'{}/{}'.format(territory['kind'], territory['code'])
-                        for territory in territorial_coverage
-                        ),
-                    ))
-
             package = dict(
                 author = organization_title,  # TODO
 #                author_email = ,
@@ -392,6 +377,7 @@ def main():
 #                url (string) – a URL for the dataset’s source (optional)
 #                version (string, no longer than 100 characters) – (optional)
                 )
+
             group_name = group_name_by_organization_name.get(organization_name)
             if group_name is not None:
                 group_id = group_id_by_name.get(group_name)
@@ -399,9 +385,209 @@ def main():
                     package['groups'] = [
                         dict(id = group_id),
                         ]
-            if package_name in existing_packages_name:
-                existing_packages_name.remove(package_name)
-                if not args.dry_run:
+
+            period = entry.get(u'Période')
+            if period is not None:
+                match = period_re.match(period)
+                assert match is not None, period
+                set_package_extra(package, u'temporal_coverage_from',
+                    u'{}-{}-{}'.format(match.group('year_from'), match.group('month_from'), match.group('day_from')))
+                year_to = match.group('year_to')
+                if year_to == u'9999':
+                    year_to = '2013'
+                set_package_extra(package, u'temporal_coverage_to',
+                    u'{}-{}-{}'.format(year_to, match.group('month_to'), match.group('day_to')))
+
+            territorial_coverage = entry.get(u'Territoires couverts')
+            if territorial_coverage:
+                set_package_extra(package, u'territorial_coverage', u','.join(
+                    u'{}/{}'.format(territory['kind'], territory['code'])
+                    for territory in territorial_coverage
+                    ))
+
+            # Group packages by date and/or territory.
+            original_package_title = package_title
+            if organization_title == u"Ministère de l'Economie et des Finances":
+                if organization_sub_title == u"Études statistiques en matière fiscale":
+                    match = re.match(ur'(?i)Impôt sur le revenu (?P<year>\d{4}) (?P<department>.+)$', package_title)
+                    if match is not None:
+                        package['title'] = package_title = u"Impôt sur le revenu"
+                        package['name'] = package_name = u'{}-{}'.format(
+                            strings.slugify(package_title)[:100 - len(etalab_id_str) - 1], etalab_id_str)
+                        set_package_extra(package, u'temporal_coverage_from', u'{}-01-01'.format(match.group('year')))
+                        set_package_extra(package, u'temporal_coverage_to', u'{}-12-31'.format(match.group('year')))
+                        set_package_extra(package, u'territorial_coverage', u'Country/FR')
+                        set_package_extra(package, u'territorial_coverage_granularity', u'commune')
+
+                        assert len(package['resources']) == 1, package
+                        resource = package['resources'][0]
+                        original_resource_name = resource['name']
+                        resource['description'] = package.pop('notes', None)
+                        resource['name'] = u"Impôt sur le revenu {} {}".format(match.group('year'),
+                            match.group('department').upper())
+
+                        if package_name in package_by_name:
+                            package2 = package
+                            package = package_by_name[package_name]
+                            set_package_extra(package, u'temporal_coverage_from', min(
+                                get_package_extra(package, u'temporal_coverage_from'),
+                                get_package_extra(package2, u'temporal_coverage_from')))
+                            set_package_extra(package, u'temporal_coverage_to', max(
+                                get_package_extra(package, u'temporal_coverage_to'),
+                                get_package_extra(package2, u'temporal_coverage_to')))
+                            package['resources'].append(resource)
+                            package['resources'].sort(key = lambda resource: resource['name'])
+                        else:
+                            package_by_name[package_name] = package
+
+                        packages_merge.append((
+                            organization_title,
+                            organization_sub_title,
+                            original_package_title,
+                            original_resource_name,
+                            package_title,
+                            resource['name'],
+                            ))
+                        continue
+
+                    match = re.match(ur'(?i)REI (?P<year>\d{4}) (?P<department>.+)$', package_title)
+                    if match is not None:
+                        package['title'] = package_title = u"Recensement des éléments d'imposition à la fiscalité directe locale (REI)"
+                        package['name'] = package_name = u'{}-{}'.format(
+                            strings.slugify(package_title)[:100 - len(etalab_id_str) - 1], etalab_id_str)
+                        package['notes'] = u'''\
+- Taxe d'habitation
+- Taxe foncière sur les propriétés bâties
+- Taxe foncière sur les propriétés non bâties
+- Taxe professionnelle
+- Taxe pour Chambre de commerce et d'industrie
+- Taxe pour Chambre des métiers
+- Taxe pour Chambre d'agriculture ou CAAA
+- Taxe d'enlèvement des ordures ménagères
+'''
+                        set_package_extra(package, u'temporal_coverage_from', u'{}-01-01'.format(match.group('year')))
+                        set_package_extra(package, u'temporal_coverage_to', u'{}-12-31'.format(match.group('year')))
+                        set_package_extra(package, u'territorial_coverage', u'Country/FR')
+                        set_package_extra(package, u'territorial_coverage_granularity', u'commune')
+
+                        assert len(package['resources']) == 1, package
+                        resource = package['resources'][0]
+                        original_resource_name = resource['name']
+                        # resource['description'] = package.pop('notes', None)
+                        resource['name'] = u"REI {} {}".format(match.group('year'), match.group('department').upper())
+
+                        if package_name in package_by_name:
+                            package2 = package
+                            package = package_by_name[package_name]
+                            set_package_extra(package, u'temporal_coverage_from', min(
+                                get_package_extra(package, u'temporal_coverage_from'),
+                                get_package_extra(package2, u'temporal_coverage_from')))
+                            set_package_extra(package, u'temporal_coverage_to', max(
+                                get_package_extra(package, u'temporal_coverage_to'),
+                                get_package_extra(package2, u'temporal_coverage_to')))
+                            package['resources'].append(resource)
+                            package['resources'].sort(key = lambda resource: resource['name'])
+                        else:
+                            package_by_name[package_name] = package
+
+                        packages_merge.append((
+                            organization_title,
+                            organization_sub_title,
+                            original_package_title,
+                            original_resource_name,
+                            package_title,
+                            resource['name'],
+                            ))
+                        continue
+
+                    match = re.match(
+                        ur'(?i)Taux de fiscalité directe locale et délibérations (?P<year>\d{4}) (?P<department>.+)$',
+                        package_title)
+                    if match is not None:
+                        package['title'] = package_title = u"Taux de fiscalité directe locale et délibérations"
+                        package['name'] = package_name = u'{}-{}'.format(
+                            strings.slugify(package_title)[:100 - len(etalab_id_str) - 1], etalab_id_str)
+                        set_package_extra(package, u'temporal_coverage_from', u'{}-01-01'.format(match.group('year')))
+                        set_package_extra(package, u'temporal_coverage_to', u'{}-12-31'.format(match.group('year')))
+                        set_package_extra(package, u'territorial_coverage', u'Country/FR')
+                        set_package_extra(package, u'territorial_coverage_granularity', u'commune')
+
+                        assert len(package['resources']) == 1, package
+                        resource = package['resources'][0]
+                        original_resource_name = resource['name']
+                        # resource['description'] = package.pop('notes', None)
+                        resource['name'] = u"Taux de fiscalité directe locale et délibérations {} {}".format(
+                            match.group('year'), match.group('department').upper())
+
+                        if package_name in package_by_name:
+                            package2 = package
+                            package = package_by_name[package_name]
+                            set_package_extra(package, u'temporal_coverage_from', min(
+                                get_package_extra(package, u'temporal_coverage_from'),
+                                get_package_extra(package2, u'temporal_coverage_from')))
+                            set_package_extra(package, u'temporal_coverage_to', max(
+                                get_package_extra(package, u'temporal_coverage_to'),
+                                get_package_extra(package2, u'temporal_coverage_to')))
+                            package['resources'].append(resource)
+                            package['resources'].sort(key = lambda resource: resource['name'])
+                        else:
+                            package_by_name[package_name] = package
+
+                        packages_merge.append((
+                            organization_title,
+                            organization_sub_title,
+                            original_package_title,
+                            original_resource_name,
+                            package_title,
+                            resource['name'],
+                            ))
+                        continue
+
+            assert package_name not in package_by_name, package_name
+            package_by_name[package_name] = package
+
+    for package_name, package in package_by_name.iteritems():
+        if package_name in existing_packages_name:
+            existing_packages_name.remove(package_name)
+            if not args.dry_run:
+                request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
+                    '/api/3/action/package_update?id={}'.format(package_name)), headers = ckan_headers)
+                try:
+                    response = urllib2.urlopen(request, urllib.quote(json.dumps(package)))
+                except urllib2.HTTPError as response:
+                    response_text = response.read()
+                    try:
+                        response_dict = json.loads(response_text)
+                    except ValueError:
+                        log.error(u'An exception occured while updating package: {}'.format(package))
+                        log.error(response_text)
+                        continue
+                    log.error(u'An error occured while updating package: {}'.format(package))
+                    for key, value in response_dict.iteritems():
+                        print '{} = {}'.format(key, value)
+                else:
+                    assert response.code == 200
+                    response_dict = json.loads(response.read())
+                    assert response_dict['success'] is True
+#                    updated_package = response_dict['result']
+#                    pprint.pprint(updated_package)
+        elif not args.dry_run:
+            request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'], '/api/3/action/package_create'),
+                headers = ckan_headers)
+            try:
+                response = urllib2.urlopen(request, urllib.quote(json.dumps(package)))
+            except urllib2.HTTPError as response:
+                response_text = response.read()
+                try:
+                    response_dict = json.loads(response_text)
+                except ValueError:
+                    log.error(u'An exception occured while creating package: {}'.format(package))
+                    log.error(response_text)
+                    continue
+                error = response_dict.get('error', {})
+                if error.get('__type') == u'Validation Error' and error.get('name'):
+                    # A package with the same name already exists. Maybe it is deleted. Undelete it.
+                    package['state'] = 'active'
                     request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
                         '/api/3/action/package_update?id={}'.format(package_name)), headers = ckan_headers)
                     try:
@@ -411,9 +597,10 @@ def main():
                         try:
                             response_dict = json.loads(response_text)
                         except ValueError:
-                            log.error(u'{0} - An exception occured while updating package: {1}'.format(index, package))
+                            log.error(u'An exception occured while undeleting package: {}'.format(package))
                             log.error(response_text)
                             continue
+                        log.error(u'An error occured while undeleting package: {}'.format(package))
                         for key, value in response_dict.iteritems():
                             print '{} = {}'.format(key, value)
                     else:
@@ -422,53 +609,16 @@ def main():
                         assert response_dict['success'] is True
 #                        updated_package = response_dict['result']
 #                        pprint.pprint(updated_package)
-            elif not args.dry_run:
-                request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'], '/api/3/action/package_create'),
-                    headers = ckan_headers)
-                try:
-                    response = urllib2.urlopen(request, urllib.quote(json.dumps(package)))
-                except urllib2.HTTPError as response:
-                    response_text = response.read()
-                    try:
-                        response_dict = json.loads(response_text)
-                    except ValueError:
-                        log.error(u'{0} - An exception occured while creating package: {1}'.format(index, package))
-                        log.error(response_text)
-                        continue
-                    error = response_dict.get('error', {})
-                    if error.get('__type') == u'Validation Error' and error.get('name'):
-                        # A package with the same name already exists. Maybe it is deleted. Undelete it.
-                        package['state'] = 'active'
-                        request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
-                            '/api/3/action/package_update?id={}'.format(package_name)), headers = ckan_headers)
-                        try:
-                            response = urllib2.urlopen(request, urllib.quote(json.dumps(package)))
-                        except urllib2.HTTPError as response:
-                            response_text = response.read()
-                            try:
-                                response_dict = json.loads(response_text)
-                            except ValueError:
-                                log.error(u'{0} - An exception occured while undeleting package: {1}'.format(
-                                    index, package))
-                                log.error(response_text)
-                                continue
-                            for key, value in response_dict.iteritems():
-                                print '{} = {}'.format(key, value)
-                        else:
-                            assert response.code == 200
-                            response_dict = json.loads(response.read())
-                            assert response_dict['success'] is True
-#                            updated_package = response_dict['result']
-#                            pprint.pprint(updated_package)
-                    else:
-                        for key, value in response_dict.iteritems():
-                            print '{} = {}'.format(key, value)
                 else:
-                    assert response.code == 200
-                    response_dict = json.loads(response.read())
-                    assert response_dict['success'] is True
-#                    created_package = response_dict['result']
-#                    pprint.pprint(created_package)
+                    log.error(u'An error occured while creating package: {1}'.format(package))
+                    for key, value in response_dict.iteritems():
+                        print '{} = {}'.format(key, value)
+            else:
+                assert response.code == 200
+                response_dict = json.loads(response.read())
+                assert response_dict['success'] is True
+#                created_package = response_dict['result']
+#                pprint.pprint(created_package)
 
     print 'Obsolete packages: {}'.format(existing_packages_name)
     if not args.dry_run:
@@ -526,7 +676,36 @@ def main():
 #                deleted_organization = response_dict['result']
 #                pprint.pprint(deleted_organization)
 
+    if packages_merge:
+        with open('jeux-de-donnees-fusionnes.csv') as packages_merge_file:
+            packages_merge_csv_writer = csv.writer(packages_merge_file, delimiter = ';', quotechar = '"',
+                quoting = csv.QUOTE_MINIMAL)
+            packages_merge_csv_writer.writerow([
+                'Organisation',
+                'Service',
+                'Jeu de données initial',
+                'Resource initiale',
+                'Jeu de données fusionné',
+                'Resource après fusion',
+                ])
+            for package_merge in sorted(packages_merge):
+                packages_merge_csv_writer.writerow([
+                    cell.encode('utf-8') if cell is not None else ''
+                    for cell in package_merge
+                    ])
+
     return 0
+
+
+def set_package_extra(package, key, value):
+    for extra in package['extras']:
+        if extra['key'] == key:
+            extra['value'] = value
+            return
+    package['extras'].append(dict(
+        key = key,
+        value = value,
+        ))
 
 
 def upsert_group(description = None, image_url = None, title = None):

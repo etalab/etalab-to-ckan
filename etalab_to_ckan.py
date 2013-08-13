@@ -610,7 +610,7 @@ def main():
 #                        updated_package = response_dict['result']
 #                        pprint.pprint(updated_package)
                 else:
-                    log.error(u'An error occured while creating package: {1}'.format(package))
+                    log.error(u'An error occured while creating package: {}'.format(package))
                     for key, value in response_dict.iteritems():
                         print '{} = {}'.format(key, value)
             else:
@@ -677,7 +677,7 @@ def main():
 #                pprint.pprint(deleted_organization)
 
     if packages_merge:
-        with open('jeux-de-donnees-fusionnes.csv') as packages_merge_file:
+        with open('jeux-de-donnees-fusionnes.csv', 'w') as packages_merge_file:
             packages_merge_csv_writer = csv.writer(packages_merge_file, delimiter = ';', quotechar = '"',
                 quoting = csv.QUOTE_MINIMAL)
             packages_merge_csv_writer.writerow([

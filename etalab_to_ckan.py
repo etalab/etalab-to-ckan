@@ -28,6 +28,7 @@
 
 
 import argparse
+import collections
 import ConfigParser
 import csv
 import json
@@ -58,19 +59,68 @@ existing_packages_name = None
 existing_organizations_name = None
 group_id_by_name = {}
 group_name_by_organization_name = {}
+grouped_packages = {}
 html_parser = etree.HTMLParser()
 license_id_by_title = {
     u'Licence Ouverte/Open Licence': u'fr-lo',
     }
 organization_group_line_re = re.compile(ur'(?P<organization>.+)\s+\d+\s+(?P<group>.+)$')
 log = logging.getLogger(app_name)
+package_by_name = {}
 packages_merge = []
 new_organization_by_name = {}
 organization_id_by_name = {}
 organization_titles_by_name = {}
-package_by_name = {}
 period_re = re.compile(ur'du (?P<day_from>[012]\d|3[01])/(?P<month_from>0\d|1[012])/(?P<year_from>[012]\d\d\d)'
     ur' au (?P<day_to>[012]\d|3[01])/(?P<month_to>0\d|1[012])/(?P<year_to>[012]\d\d\d|9999)$')
+grouping_rules = {
+    u"FranceAgriMer - Établissement national des produits de l'agriculture et de la mer": {
+        None: [
+            (
+                re.compile(ur"(?i)(?P<core>.+?) semaine (?P<week>\d{1,2})( (?P<year>\d{4}))?$"),
+                'week',
+                ('week', 'year'),
+                ),
+            ],
+        },
+    u"Ministère de l’Agriculture, de l’Agroalimentaire et de la Forêt": {
+        None: [
+            (
+                re.compile(ur"(?i)(?P<core>.+?) (?P<year>\d{4})$"),
+                'year',
+                ('year',),
+                ),
+            ],
+        },
+    u"Ministère de l'Economie et des Finances": {
+        u"Études statistiques en matière fiscale": [
+            (
+                re.compile(ur"(?i)(?P<core>Impôt sur le revenu) (?P<year>\d{4}) (?P<department>.+)$"),
+                'year',
+                ('year', 'department'),
+                ),
+            (
+                re.compile(ur"(?i)(?P<core>REI) (?P<year>\d{4}) (?P<department>.+)$"),
+                'year',
+                ('year', 'department'),
+                ),
+            (
+                re.compile(ur"(?i)(?P<core>Taux de fiscalité directe locale et délibérations) (?P<year>\d{4}) (?P<department>.+)$"),
+                'year',
+                ('year', 'department'),
+                ),
+            ],
+        },
+    u"Ministère de l'Education Nationale": {
+        None: [
+            (
+                re.compile(ur"(?i)(?P<core>.+?) - actualisation (?P<year>\d{4})$"),
+                'school-year',
+                ('year',),
+                ),
+            ],
+        },
+    }
 
 
 def get_package_extra(package, key, default = UnboundLocalError):
@@ -87,6 +137,7 @@ def main():
     parser.add_argument('config', help = 'path of configuration file')
     parser.add_argument('-d', '--dry-run', action = 'store_true',
         help = "simulate import, don't update CKAN repository")
+    parser.add_argument('-f', '--file', action = 'store_true', help = "load packages from file")
     parser.add_argument('-o', '--offset', help = 'index of first dataset to import', type = int)
     parser.add_argument('-r', '--reset', action = 'store_true',
         help = 'erase content of CKAN database not imported by this script')
@@ -253,98 +304,111 @@ def main():
         log.info(u'Upserting group {0}'.format(group_title))
         upsert_group(title = group_title)
 
-    log.info('Updating datasets')
-    with job.dataset('/comarquage/metanol/fiches_data.gouv.fr').open(job) as store:
-        for index, (etalab_id, entry) in enumerate(store.iteritems()):
-            if args.offset is not None and index < args.offset:
-                continue
-
-            # Ignore datasets that are part of a (frequently used) web-service.
-            ignore_dataset = False
-            for data in entry.get(u'Données', []):
-                url = data.get('URL')
-                if url is None:
+    if args.file:
+        log.info(u'Reading data.gouv.fr entries from file')
+        with open('fiches-data.gouv.fr.json') as entries_file:
+            entry_by_etalab_id = json.load(entries_file, object_pairs_hook = collections.OrderedDict)
+    else:
+        log.info(u'Loading data.gouv.fr entries from Wenodata')
+        entry_by_etalab_id = collections.OrderedDict()
+        with job.dataset('/comarquage/metanol/fiches_data.gouv.fr').open(job) as store:
+            for etalab_id, entry in store.iteritems():
+                # Ignore datasets that are part of a (frequently used) web-service.
+                ignore_dataset = False
+                for data in entry.get(u'Données', []):
+                    url = data.get('URL')
+                    if url is None:
+                        continue
+                    url = url.split('?', 1)[0]
+                    if url in (
+                            u'http://www.bdm.insee.fr/bdm2/choixCriteres.action',  # 2104
+                            u'http://www.bdm.insee.fr/bdm2/exporterSeries.action',  # 2104
+                            u'http://www.recensement-2008.insee.fr/exportXLS.action',  # 9996
+                            u'http://www.recensement-2008.insee.fr/tableauxDetailles.action',  # 9996
+                            u'http://www.stats.environnement.developpement-durable.gouv.fr/Eider/selection_series_popup.do',  # 55553
+                            u'http://www.recensement-2008.insee.fr/chiffresCles.action',  # 281832
+                            u'http://www.recensement-2008.insee.fr/exportXLSCC.action',  # 281832
+                            ):
+                        ignore_dataset = True
+                        break
+                if ignore_dataset:
                     continue
-                url = url.split('?', 1)[0]
-                if url in (
-                        u'http://www.bdm.insee.fr/bdm2/choixCriteres.action',  # 2104
-                        u'http://www.bdm.insee.fr/bdm2/exporterSeries.action',  # 2104
-                        u'http://www.recensement-2008.insee.fr/exportXLS.action',  # 9996
-                        u'http://www.recensement-2008.insee.fr/tableauxDetailles.action',  # 9996
-                        u'http://www.stats.environnement.developpement-durable.gouv.fr/Eider/selection_series_popup.do',  # 55553
-                        u'http://www.recensement-2008.insee.fr/chiffresCles.action',  # 281832
-                        u'http://www.recensement-2008.insee.fr/exportXLSCC.action',  # 281832
-                        ):
-                    ignore_dataset = True
-                    break
-            if ignore_dataset:
-                continue
+                entry_by_etalab_id[etalab_id] = entry
+                break
+        log.info(u'Writing data.gouv.fr entries to file')
+        with open('fiches-data.gouv.fr.json', 'w') as entries_file:
+            json.dump(entry_by_etalab_id, entries_file)
 
-            log.info(u'Upserting dataset {0} - {1}'.format(index, entry['Titre']))
+    log.info('Generating datasets')
+    for index, (etalab_id, entry) in enumerate(entry_by_etalab_id.iteritems()):
+        if args.offset is not None and index < args.offset:
+            continue
 
-            etalab_id_str = str(etalab_id)
-            package_title = u' '.join(entry['Titre'].split())  # Cleanup multiple spaces.
-            package_name = u'{}-{}'.format(strings.slugify(package_title)[:100 - len(etalab_id_str) - 1],
-                etalab_id_str)
-            source_name = strings.slugify(entry.get('Source'))[:100]
-            organization_titles = organization_titles_by_name.get(source_name)
-            if organization_titles is None:
-                organization_title = entry.get('Source')
-                organization_sub_title = None
-            else:
-                organization_title, organization_sub_title = organization_titles
-            organization_name = strings.slugify(organization_title)[:100]
-            organization_id = organization_id_by_name.get(organization_name, UnboundLocalError)
-            if organization_id is UnboundLocalError:
-                organization_id = upsert_organization(title = organization_title)
-            license_id = conv.check(conv.pipe(
-                conv.test_in(license_id_by_title),
-                conv.translate(license_id_by_title)
-                ))(entry.get('Licence', {}).get('Titre'), state = conv.default_state)
-            extras = [
-                dict(
-                    # deleted = True,
-                    key = key,
-                    value = value,
-                    )
-                for key, value in entry.iteritems()
-                if key not in (
-                    u'Couverture géographique',
-                    u'Date de dernière modification',
-                    u'Date de publication',
-                    u'Description',
-                    u'Documents annexes',
-                    u'Données',
-                    u'Licence',
-                    u'Mots-clés',
-                    u'Période',
-                    u'Source',
-                    u'Titre',
-                    )
-                if isinstance(value, basestring)
-                ]
+#        log.info(u'Generating dataset {0} - {1}'.format(index, entry['Titre']))
 
-            package = dict(
-                author = organization_title,  # TODO
+        etalab_id_str = str(etalab_id)
+        package_title = u' '.join(entry['Titre'].split())  # Cleanup multiple spaces.
+        package_name = u'{}-{}'.format(strings.slugify(package_title)[:100 - len(etalab_id_str) - 1],
+            etalab_id_str)
+        source_name = strings.slugify(entry.get('Source'))[:100]
+        organization_titles = organization_titles_by_name.get(source_name)
+        if organization_titles is None:
+            organization_title = entry.get('Source')
+            service_title = None
+        else:
+            organization_title, service_title = organization_titles
+        organization_name = strings.slugify(organization_title)[:100]
+        organization_id = organization_id_by_name.get(organization_name, UnboundLocalError)
+        if organization_id is UnboundLocalError:
+            organization_id = upsert_organization(title = organization_title)
+        license_id = conv.check(conv.pipe(
+            conv.test_in(license_id_by_title),
+            conv.translate(license_id_by_title)
+            ))(entry.get('Licence', {}).get('Titre'), state = conv.default_state)
+        extras = [
+            dict(
+                # deleted = True,
+                key = key,
+                value = value,
+                )
+            for key, value in entry.iteritems()
+            if key not in (
+                u'Couverture géographique',
+                u'Date de dernière modification',
+                u'Date de publication',
+                u'Description',
+                u'Documents annexes',
+                u'Données',
+                u'Licence',
+                u'Mots-clés',
+                u'Période',
+                u'Source',
+                u'Titre',
+                )
+            if isinstance(value, basestring)
+            ]
+
+        package = dict(
+            author = organization_title,  # TODO
 #                author_email = ,
-                extras = extras,
-                # groups is added below.
-                license_id = license_id,
-                maintainer = organization_sub_title or u'',  # Don't duplicate with the author, because it is useless.
+            extras = extras,
+            # groups is added below.
+            license_id = license_id,
+            maintainer = service_title or u'',  # Don't duplicate with the author, because it is useless.
 #                maintainer_email = ,
-                name = package_name,
-                notes = entry.get('Description'),
-                owner_org = organization_id,
+            name = package_name,
+            notes = entry.get('Description'),
+            owner_org = organization_id,
 #                relationships_as_object (list of relationship dictionaries) – see package_relationship_create() for the format of relationship dictionaries (optional)
 #                relationships_as_subject (list of relationship dictionaries) – see package_relationship_create() for the format of relationship dictionaries (optional)
-                resources = [
-                    dict(
-                        created = entry.get(u'Date de publication'),
-                        format = data.get('Format'),
-                        last_modified = entry.get(u'Date de dernière modification'),
-                        name = u' '.join(data['Titre'].split()) if data.get('Titre') else None,  # Cleanup spaces.
-                        # package_id (string) – id of package that the resource needs should be added to.
-                        url = data['URL'],
+            resources = [
+                dict(
+                    created = entry.get(u'Date de publication'),
+                    format = data.get('Format'),
+                    last_modified = entry.get(u'Date de dernière modification'),
+                    name = u' '.join(data['Titre'].split()) if data.get('Titre') else None,  # Cleanup spaces.
+                    # package_id (string) – id of package that the resource needs should be added to.
+                    url = data['URL'],
 #                        revision_id – (optional)
 #                        description (string) – (optional)
 #                        hash (string) – (optional)
@@ -356,195 +420,281 @@ def main():
 #                        size (int) – (optional)
 #                        cache_last_updated (iso date string) – (optional)
 #                        webstore_last_updated (iso date string) – (optional)
-                        )
-                    for data in entry.get(u'Données', []) + entry.get(u'Documents annexes', [])
-                    ],
-                # state = 'active',
-                tags = [
-                    dict(
-                        name = tag_name,
+                    )
+                for data in entry.get(u'Données', []) + entry.get(u'Documents annexes', [])
+                ],
+            # state = 'active',
+            tags = [
+                dict(
+                    name = tag_name,
 #                        vocabulary_id (string) – the name or id of the vocabulary that the new tag should be added to, e.g. 'Genre'
-                        )
-                    for tag_name in (
-                        strings.slugify(keyword)[:100]
-                        for keyword in entry.get(u'Mots-clés', [])
-                        if keyword is not None
-                        )
-                    if len(tag_name) >= 2
-                    ],
-                title = package_title,
+                    )
+                for tag_name in (
+                    strings.slugify(keyword)[:100]
+                    for keyword in entry.get(u'Mots-clés', [])
+                    if keyword is not None
+                    )
+                if len(tag_name) >= 2
+                ],
+            title = package_title,
 #                type (string) – the type of the dataset (optional), IDatasetForm plugins associate themselves with different dataset types and provide custom dataset handling behaviour for these types
 #                url (string) – a URL for the dataset’s source (optional)
 #                version (string, no longer than 100 characters) – (optional)
-                )
+            )
 
-            group_name = group_name_by_organization_name.get(organization_name)
-            if group_name is not None:
-                group_id = group_id_by_name.get(group_name)
-                if group_id is not None:
-                    package['groups'] = [
-                        dict(id = group_id),
-                        ]
+        group_name = group_name_by_organization_name.get(organization_name)
+        if group_name is not None:
+            group_id = group_id_by_name.get(group_name)
+            if group_id is not None:
+                package['groups'] = [
+                    dict(id = group_id),
+                    ]
 
-            period = entry.get(u'Période')
-            if period is not None:
-                match = period_re.match(period)
-                assert match is not None, period
-                set_package_extra(package, u'temporal_coverage_from',
-                    u'{}-{}-{}'.format(match.group('year_from'), match.group('month_from'), match.group('day_from')))
-                year_to = match.group('year_to')
-                if year_to == u'9999':
-                    year_to = '2013'
-                set_package_extra(package, u'temporal_coverage_to',
-                    u'{}-{}-{}'.format(year_to, match.group('month_to'), match.group('day_to')))
+        period = entry.get(u'Période')
+        if period is not None:
+            match = period_re.match(period)
+            assert match is not None, period
+            set_package_extra(package, u'temporal_coverage_from',
+                u'{}-{}-{}'.format(match.group('year_from'), match.group('month_from'), match.group('day_from')))
+            year_to = match.group('year_to')
+            if year_to == u'9999':
+                year_to = '2013'
+            set_package_extra(package, u'temporal_coverage_to',
+                u'{}-{}-{}'.format(year_to, match.group('month_to'), match.group('day_to')))
 
-            territorial_coverage = entry.get(u'Territoires couverts')
-            if territorial_coverage:
-                set_package_extra(package, u'territorial_coverage', u','.join(
-                    u'{}/{}'.format(territory['kind'], territory['code'])
-                    for territory in territorial_coverage
-                    ))
+        territorial_coverage = entry.get(u'Territoires couverts')
+        if territorial_coverage:
+            set_package_extra(package, u'territorial_coverage', u','.join(
+                u'{}/{}'.format(territory['kind'], territory['code'])
+                for territory in territorial_coverage
+                ))
 
-            # Group packages by date and/or territory.
-            original_package_title = package_title
-            if organization_title == u"Ministère de l'Economie et des Finances":
-                if organization_sub_title == u"Études statistiques en matière fiscale":
-                    match = re.match(ur'(?i)Impôt sur le revenu (?P<year>\d{4}) (?P<department>.+)$', package_title)
-                    if match is not None:
-                        package['title'] = package_title = u"Impôt sur le revenu"
-                        package['name'] = package_name = u'{}-{}'.format(
-                            strings.slugify(package_title)[:100 - len(etalab_id_str) - 1], etalab_id_str)
-                        set_package_extra(package, u'temporal_coverage_from', u'{}-01-01'.format(match.group('year')))
-                        set_package_extra(package, u'temporal_coverage_to', u'{}-12-31'.format(match.group('year')))
-                        set_package_extra(package, u'territorial_coverage', u'Country/FR')
-                        set_package_extra(package, u'territorial_coverage_granularity', u'commune')
+        assert package_name not in package_by_name, package_name
+        package_by_name[package_name] = package
 
-                        assert len(package['resources']) == 1, package
-                        resource = package['resources'][0]
-                        original_resource_name = resource['name']
-                        resource['description'] = package.pop('notes', None)
-                        resource['name'] = u"Impôt sur le revenu {} {}".format(match.group('year'),
-                            match.group('department').upper())
+        # Group packages by date and/or territory.
+        packages_infos_by_pattern = grouped_packages.setdefault(organization_title, {}).setdefault(
+            service_title, {})
+        service_grouping_rules = grouping_rules.get(organization_title, {}).get(service_title)
+        if service_grouping_rules is not None:
+            for rule_index, (package_title_re, repetition_type, fields) in enumerate(service_grouping_rules):
+                match = package_title_re.match(package_title)
+                if match is None:
+                    packages_infos_by_pattern.setdefault(None, []).append((package_name, package_title))
+                else:
+                    packages_infos_by_pattern.setdefault((rule_index, strings.slugify(match.group('core')),
+                        repetition_type, fields), []).append((package_name, match.groupdict()))
+#            elif organization_title == u"Ministère de l'Economie et des Finances":
+#                if service_title == u"Études statistiques en matière fiscale":
+#                    match = re.match(ur'(?i)Impôt sur le revenu (?P<year>\d{4}) (?P<department>.+)$', package_title)
+#                    if match is not None:
+#                        package['title'] = package_title = u"Impôt sur le revenu"
+#                        package['name'] = package_name = u'{}-{}'.format(
+#                            strings.slugify(package_title)[:100 - len(etalab_id_str) - 1], etalab_id_str)
+#                        set_package_extra(package, u'temporal_coverage_from', u'{}-01-01'.format(match.group('year')))
+#                        set_package_extra(package, u'temporal_coverage_to', u'{}-12-31'.format(match.group('year')))
+#                        set_package_extra(package, u'territorial_coverage', u'Country/FR')
+#                        set_package_extra(package, u'territorial_coverage_granularity', u'commune')
 
-                        if package_name in package_by_name:
-                            package2 = package
-                            package = package_by_name[package_name]
-                            set_package_extra(package, u'temporal_coverage_from', min(
-                                get_package_extra(package, u'temporal_coverage_from'),
-                                get_package_extra(package2, u'temporal_coverage_from')))
-                            set_package_extra(package, u'temporal_coverage_to', max(
-                                get_package_extra(package, u'temporal_coverage_to'),
-                                get_package_extra(package2, u'temporal_coverage_to')))
-                            package['resources'].append(resource)
-                            package['resources'].sort(key = lambda resource: resource['name'])
+#                        assert len(package['resources']) == 1, package
+#                        resource = package['resources'][0]
+#                        original_resource_name = resource['name']
+#                        resource['description'] = package.pop('notes', None)
+#                        resource['name'] = u"Impôt sur le revenu {} {}".format(match.group('year'),
+#                            match.group('department').upper())
+
+#                        if package_name in package_by_name:
+#                            package2 = package
+#                            package = package_by_name[package_name]
+#                            set_package_extra(package, u'temporal_coverage_from', min(
+#                                get_package_extra(package, u'temporal_coverage_from'),
+#                                get_package_extra(package2, u'temporal_coverage_from')))
+#                            set_package_extra(package, u'temporal_coverage_to', max(
+#                                get_package_extra(package, u'temporal_coverage_to'),
+#                                get_package_extra(package2, u'temporal_coverage_to')))
+#                            package['resources'].append(resource)
+#                            package['resources'].sort(key = lambda resource: resource['name'])
+#                        else:
+#                            package_by_name[package_name] = package
+
+#                        packages_merge.append((
+#                            organization_title,
+#                            service_title,
+#                            original_package_title,
+#                            original_resource_name,
+#                            package_title,
+#                            resource['name'],
+#                            ))
+#                        continue
+
+#                    match = re.match(ur'(?i)REI (?P<year>\d{4}) (?P<department>.+)$', package_title)
+#                    if match is not None:
+#                        package['title'] = package_title = u"Recensement des éléments d'imposition à la fiscalité directe locale (REI)"
+#                        package['name'] = package_name = u'{}-{}'.format(
+#                            strings.slugify(package_title)[:100 - len(etalab_id_str) - 1], etalab_id_str)
+#                        package['notes'] = u'''\
+#- Taxe d'habitation
+#- Taxe foncière sur les propriétés bâties
+#- Taxe foncière sur les propriétés non bâties
+#- Taxe professionnelle
+#- Taxe pour Chambre de commerce et d'industrie
+#- Taxe pour Chambre des métiers
+#- Taxe pour Chambre d'agriculture ou CAAA
+#- Taxe d'enlèvement des ordures ménagères
+#'''
+#                        set_package_extra(package, u'temporal_coverage_from', u'{}-01-01'.format(match.group('year')))
+#                        set_package_extra(package, u'temporal_coverage_to', u'{}-12-31'.format(match.group('year')))
+#                        set_package_extra(package, u'territorial_coverage', u'Country/FR')
+#                        set_package_extra(package, u'territorial_coverage_granularity', u'commune')
+
+#                        assert len(package['resources']) == 1, package
+#                        resource = package['resources'][0]
+#                        original_resource_name = resource['name']
+#                        # resource['description'] = package.pop('notes', None)
+#                        resource['name'] = u"REI {} {}".format(match.group('year'), match.group('department').upper())
+
+#                        if package_name in package_by_name:
+#                            package2 = package
+#                            package = package_by_name[package_name]
+#                            set_package_extra(package, u'temporal_coverage_from', min(
+#                                get_package_extra(package, u'temporal_coverage_from'),
+#                                get_package_extra(package2, u'temporal_coverage_from')))
+#                            set_package_extra(package, u'temporal_coverage_to', max(
+#                                get_package_extra(package, u'temporal_coverage_to'),
+#                                get_package_extra(package2, u'temporal_coverage_to')))
+#                            package['resources'].append(resource)
+#                            package['resources'].sort(key = lambda resource: resource['name'])
+#                        else:
+#                            package_by_name[package_name] = package
+
+#                        packages_merge.append((
+#                            organization_title,
+#                            service_title,
+#                            original_package_title,
+#                            original_resource_name,
+#                            package_title,
+#                            resource['name'],
+#                            ))
+#                        continue
+
+#                    match = re.match(
+#                        ur'(?i)Taux de fiscalité directe locale et délibérations (?P<year>\d{4}) (?P<department>.+)$',
+#                        package_title)
+#                    if match is not None:
+#                        package['title'] = package_title = u"Taux de fiscalité directe locale et délibérations"
+#                        package['name'] = package_name = u'{}-{}'.format(
+#                            strings.slugify(package_title)[:100 - len(etalab_id_str) - 1], etalab_id_str)
+#                        set_package_extra(package, u'temporal_coverage_from', u'{}-01-01'.format(match.group('year')))
+#                        set_package_extra(package, u'temporal_coverage_to', u'{}-12-31'.format(match.group('year')))
+#                        set_package_extra(package, u'territorial_coverage', u'Country/FR')
+#                        set_package_extra(package, u'territorial_coverage_granularity', u'commune')
+
+#                        assert len(package['resources']) == 1, package
+#                        resource = package['resources'][0]
+#                        original_resource_name = resource['name']
+#                        # resource['description'] = package.pop('notes', None)
+#                        resource['name'] = u"Taux de fiscalité directe locale et délibérations {} {}".format(
+#                            match.group('year'), match.group('department').upper())
+
+#                        if package_name in package_by_name:
+#                            package2 = package
+#                            package = package_by_name[package_name]
+#                            set_package_extra(package, u'temporal_coverage_from', min(
+#                                get_package_extra(package, u'temporal_coverage_from'),
+#                                get_package_extra(package2, u'temporal_coverage_from')))
+#                            set_package_extra(package, u'temporal_coverage_to', max(
+#                                get_package_extra(package, u'temporal_coverage_to'),
+#                                get_package_extra(package2, u'temporal_coverage_to')))
+#                            package['resources'].append(resource)
+#                            package['resources'].sort(key = lambda resource: resource['name'])
+#                        else:
+#                            package_by_name[package_name] = package
+
+#                        packages_merge.append((
+#                            organization_title,
+#                            service_title,
+#                            original_package_title,
+#                            original_resource_name,
+#                            package_title,
+#                            resource['name'],
+#                            ))
+#                        continue
+
+    log.info(u'Merging datasets')
+    for organization_title, organization_grouped_packages in grouped_packages.iteritems():
+        for service_title, packages_infos_by_pattern in organization_grouped_packages.iteritems():
+            # First, try to regroup ungrouped packages with a group that uses the name of the package as core.
+            ungrouped_packages_infos = packages_infos_by_pattern.pop(None, [])
+            for package_name, package_title in ungrouped_packages_infos:
+                package_slug = strings.slugify(package_title)
+                for (rule_index, core, repetition_type, fields), packages_infos in packages_infos_by_pattern.iteritems():
+                    if package_slug == core:
+                        packages_infos.insert(0, (package_name, dict(core = package_title)))
+                        break
+            # Merge packages with the same core.
+            for (rule_index, core, repetition_type, fields), packages_infos \
+                    in packages_infos_by_pattern.iteritems():
+                if len(packages_infos) == 1:
+                    continue
+                merged_package = None
+                packages_infos.sort(key = lambda (package_name, vars): strings.slugify(package_name))
+                for package_index, (package_name, vars) in enumerate(packages_infos):
+                    package = package_by_name.pop(package_name)
+
+                    if repetition_type == 'school-year':
+                        assert get_package_extra(package, u'temporal_coverage_from', None) is not None, package
+                        assert get_package_extra(package, u'temporal_coverage_to', None) is not None, package
+                    elif repetition_type == 'week':
+                        assert get_package_extra(package, u'temporal_coverage_from', None) is not None, package
+                        assert get_package_extra(package, u'temporal_coverage_to', None) is not None, package
+                    elif repetition_type == 'year':
+                        if vars.get('year'):
+                            set_package_extra(package, u'temporal_coverage_from', u'{}-01-01'.format(vars['year']))
+                            set_package_extra(package, u'temporal_coverage_to', u'{}-12-31'.format(vars['year']))
                         else:
-                            package_by_name[package_name] = package
+                            assert get_package_extra(package, u'temporal_coverage_from', None) is not None, package
+                            assert get_package_extra(package, u'temporal_coverage_to', None) is not None, package
+                    else:
+                        raise Exception('Unknown repetition_type: {}'.format(repetition_type))
 
-                        packages_merge.append((
-                            organization_title,
-                            organization_sub_title,
-                            original_package_title,
-                            original_resource_name,
-                            package_title,
-                            resource['name'],
-                            ))
-                        continue
-
-                    match = re.match(ur'(?i)REI (?P<year>\d{4}) (?P<department>.+)$', package_title)
-                    if match is not None:
-                        package['title'] = package_title = u"Recensement des éléments d'imposition à la fiscalité directe locale (REI)"
-                        package['name'] = package_name = u'{}-{}'.format(
-                            strings.slugify(package_title)[:100 - len(etalab_id_str) - 1], etalab_id_str)
-                        package['notes'] = u'''\
-- Taxe d'habitation
-- Taxe foncière sur les propriétés bâties
-- Taxe foncière sur les propriétés non bâties
-- Taxe professionnelle
-- Taxe pour Chambre de commerce et d'industrie
-- Taxe pour Chambre des métiers
-- Taxe pour Chambre d'agriculture ou CAAA
-- Taxe d'enlèvement des ordures ménagères
-'''
-                        set_package_extra(package, u'temporal_coverage_from', u'{}-01-01'.format(match.group('year')))
-                        set_package_extra(package, u'temporal_coverage_to', u'{}-12-31'.format(match.group('year')))
-                        set_package_extra(package, u'territorial_coverage', u'Country/FR')
-                        set_package_extra(package, u'territorial_coverage_granularity', u'commune')
-
-                        assert len(package['resources']) == 1, package
-                        resource = package['resources'][0]
-                        original_resource_name = resource['name']
-                        # resource['description'] = package.pop('notes', None)
-                        resource['name'] = u"REI {} {}".format(match.group('year'), match.group('department').upper())
-
-                        if package_name in package_by_name:
-                            package2 = package
-                            package = package_by_name[package_name]
-                            set_package_extra(package, u'temporal_coverage_from', min(
-                                get_package_extra(package, u'temporal_coverage_from'),
-                                get_package_extra(package2, u'temporal_coverage_from')))
-                            set_package_extra(package, u'temporal_coverage_to', max(
-                                get_package_extra(package, u'temporal_coverage_to'),
-                                get_package_extra(package2, u'temporal_coverage_to')))
-                            package['resources'].append(resource)
-                            package['resources'].sort(key = lambda resource: resource['name'])
+                    assert len(package['resources']) >= 1, package
+                    original_resource_name = package['resources'][0]['name']
+                    for resource_index, resource in enumerate(package['resources']):
+                        if resource_index == 0 and resource.get('description') is None:
+                            resource['description'] = package.get('notes')
+                        if resource.get('name') is None:
+                            resource['name'] = package['title']
+                            if resource_index > 0:
+                                resource['name'] += u'- document {}'.format(resource_index + 1)
                         else:
-                            package_by_name[package_name] = package
+                            for field in fields:
+                                field_value = vars.get(field)
+                                if field_value and field_value not in resource['name']:
+                                    resource['name'] += u' - {}'.format(field_value)
 
-                        packages_merge.append((
-                            organization_title,
-                            organization_sub_title,
-                            original_package_title,
-                            original_resource_name,
-                            package_title,
-                            resource['name'],
-                            ))
-                        continue
+                    if package_index == 0:
+                        merged_package = package.copy()
+                        merged_package['title'] = vars['core']
+                        merged_package['name'] = merged_package_name = u'{}-00000000'.format(
+                            strings.slugify(merged_package['title'])[:100 - len(u'00000000') - 1])
+                        package_by_name[merged_package_name] = merged_package
+                    else:
+                        set_package_extra(merged_package, u'temporal_coverage_from', min(
+                            get_package_extra(merged_package, u'temporal_coverage_from'),
+                            get_package_extra(package, u'temporal_coverage_from')))
+                        set_package_extra(merged_package, u'temporal_coverage_to', max(
+                            get_package_extra(merged_package, u'temporal_coverage_to'),
+                            get_package_extra(package, u'temporal_coverage_to')))
+                        merged_package['resources'].extend(package['resources'])
 
-                    match = re.match(
-                        ur'(?i)Taux de fiscalité directe locale et délibérations (?P<year>\d{4}) (?P<department>.+)$',
-                        package_title)
-                    if match is not None:
-                        package['title'] = package_title = u"Taux de fiscalité directe locale et délibérations"
-                        package['name'] = package_name = u'{}-{}'.format(
-                            strings.slugify(package_title)[:100 - len(etalab_id_str) - 1], etalab_id_str)
-                        set_package_extra(package, u'temporal_coverage_from', u'{}-01-01'.format(match.group('year')))
-                        set_package_extra(package, u'temporal_coverage_to', u'{}-12-31'.format(match.group('year')))
-                        set_package_extra(package, u'territorial_coverage', u'Country/FR')
-                        set_package_extra(package, u'territorial_coverage_granularity', u'commune')
-
-                        assert len(package['resources']) == 1, package
-                        resource = package['resources'][0]
-                        original_resource_name = resource['name']
-                        # resource['description'] = package.pop('notes', None)
-                        resource['name'] = u"Taux de fiscalité directe locale et délibérations {} {}".format(
-                            match.group('year'), match.group('department').upper())
-
-                        if package_name in package_by_name:
-                            package2 = package
-                            package = package_by_name[package_name]
-                            set_package_extra(package, u'temporal_coverage_from', min(
-                                get_package_extra(package, u'temporal_coverage_from'),
-                                get_package_extra(package2, u'temporal_coverage_from')))
-                            set_package_extra(package, u'temporal_coverage_to', max(
-                                get_package_extra(package, u'temporal_coverage_to'),
-                                get_package_extra(package2, u'temporal_coverage_to')))
-                            package['resources'].append(resource)
-                            package['resources'].sort(key = lambda resource: resource['name'])
-                        else:
-                            package_by_name[package_name] = package
-
-                        packages_merge.append((
-                            organization_title,
-                            organization_sub_title,
-                            original_package_title,
-                            original_resource_name,
-                            package_title,
-                            resource['name'],
-                            ))
-                        continue
-
-            assert package_name not in package_by_name, package_name
-            package_by_name[package_name] = package
+                    packages_merge.append((
+                        organization_title,
+                        service_title,
+                        package['title'],
+                        original_resource_name,
+                        merged_package['title'],
+                        package['resources'][0]['name'],
+                        ))
 
     for package_name, package in package_by_name.iteritems():
         if package_name in existing_packages_name:
@@ -677,7 +827,7 @@ def main():
 #                pprint.pprint(deleted_organization)
 
     if packages_merge:
-        with open('jeux-de-donnees-fusionnes.csv', 'w') as packages_merge_file:
+        with open('jeux-de-donnees-fusionnes.txt', 'w') as packages_merge_file:
             packages_merge_csv_writer = csv.writer(packages_merge_file, delimiter = ';', quotechar = '"',
                 quoting = csv.QUOTE_MINIMAL)
             packages_merge_csv_writer.writerow([

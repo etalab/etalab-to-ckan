@@ -199,7 +199,6 @@ def main():
         'Authorization': conf['ckan.api_key'],
         'User-Agent': conf['user_agent'],
         }
-    job = wenoio.init(server_url = conf['wenodata.site_url'])
 
     # Retrieve names of packages already existing in CKAN.
     request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'], '/api/3/action/package_list'),
@@ -327,6 +326,7 @@ def main():
     else:
         log.info(u'Loading data.gouv.fr entries from Wenodata')
         entry_by_etalab_id = collections.OrderedDict()
+        job = wenoio.init(server_url = conf['wenodata.site_url'])
         with job.dataset('/comarquage/metanol/fiches_data.gouv.fr').open(job) as store:
             for etalab_id, entry in store.iteritems():
                 # Ignore datasets that are part of a (frequently used) web-service.
@@ -350,7 +350,7 @@ def main():
                 if ignore_dataset:
                     continue
                 entry_by_etalab_id[etalab_id] = entry
-                break
+        assert len(entry_by_etalab_id) > 1, entry_by_etalab_id
         log.info(u'Writing data.gouv.fr entries to file')
         with open('fiches-data.gouv.fr.json', 'w') as entries_file:
             json.dump(entry_by_etalab_id, entries_file)

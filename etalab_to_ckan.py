@@ -99,6 +99,40 @@ title_grouping_rules = {
                 ),
             ],
         },
+    u"Institut national des hautes études de la sécurité et de la justice, Département Observatoire national de la délinquance et des réponses pénales": {
+        None: [
+            (
+                re.compile(ur"(?i)(?P<core>Faits constatés annuels par index 4001 et par département) en (?P<year>\d{4})$"),
+                'year',
+                ('year',),
+                ),
+            (
+                re.compile(ur"(?i)(?P<core>Faits constatés annuels par index 4001 pour les services centraux) en (?P<year>\d{4})$"),
+                'year',
+                ('year',),
+                ),
+            (
+                re.compile(ur"(?i)(?P<core>Faits constatés par département, par index et par mois), pour l'année (?P<year>\d{4})$"),
+                'year',
+                ('year',),
+                ),
+            (
+                re.compile(ur"(?i)(?P<core>Faits constatés par départements) (?P<month>[^ ]+) (?P<year>\d{4})$"),
+                'year',
+                ('year', 'month'),
+                ),
+            (
+                re.compile(ur"(?i)(?P<core>Faits constatés Zone Gendarmerie)$"),
+                None,
+                None,
+                ),
+            (
+                re.compile(ur"(?i)(?P<core>Faits constatés Zone Police)$"),
+                None,
+                None,
+                ),
+            ],
+        },
     u"Ministère de l’Agriculture, de l’Agroalimentaire et de la Forêt": {
         None: [
             (
@@ -126,6 +160,13 @@ title_grouping_rules = {
                 ('year', 'department'),
                 ),
             ],
+        u"Ministère du Budget, des Comptes publics et de la Réforme de l'Etat, Direction du budget": [
+            (
+                re.compile(ur"(?i)(?P<core>Jaune) (?P<year>\d{4}) - Personnels Cabinets Ministériels - (?P<detail>.+)$"),
+                'year',
+                ('year', 'detail'),
+                ),
+            ],
         },
     u"Ministère de l'Education Nationale": {
         None: [
@@ -133,6 +174,24 @@ title_grouping_rules = {
                 re.compile(ur"(?i)(?P<core>.+?) - actualisation (?P<year>\d{4})$"),
                 'school-year',
                 ('year',),
+                ),
+            ],
+        },
+    u"Ministère de la Défense": {
+        None: [
+            (
+                re.compile(ur"(?i)(?P<core>.+?)( en)? (?P<year>\d{4})$"),
+                'year',
+                ('year',),
+                ),
+            ],
+        },
+    u"Ministère de la Justice": {
+        u"Direction de l'administration pénitentiaire": [
+            (
+                re.compile(ur"(?i)(?P<core>.+?). Situation au 1er (?P<month>[^ ]+) (?P<year>\d{4})$"),
+                'year',
+                ('year', 'month'),
                 ),
             ],
         },
@@ -502,7 +561,7 @@ def main():
             for rule_index, (package_title_re, repetition_type, fields) in enumerate(service_title_grouping_rules):
                 match = package_title_re.match(package_title)
                 if match is None:
-                    packages_infos_by_pattern.setdefault(None, []).append((package_name, package_title))
+                    packages_infos_by_pattern.setdefault(None, set()).add((package_name, package_title))
                 else:
                     packages_infos_by_pattern.setdefault((rule_index, strings.slugify(match.group('core')),
                         repetition_type, fields), []).append((package_name, match.groupdict()))
@@ -663,7 +722,11 @@ def main():
                 package_slug = strings.slugify(package_title)
                 for (rule_index, core, repetition_type, fields), packages_infos in packages_infos_by_pattern.iteritems():
                     if package_slug == core:
-                        packages_infos.insert(0, (package_name, dict(core = package_title)))
+                        for other_package_name, other_vars in packages_infos:
+                            if package_name == other_package_name:
+                                break
+                        else:
+                            packages_infos.insert(0, (package_name, dict(core = package_title)))
                         break
             # Merge packages with the same core.
             for (rule_index, core, repetition_type, fields), packages_infos in packages_infos_by_pattern.iteritems():

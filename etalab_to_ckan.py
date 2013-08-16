@@ -69,11 +69,27 @@ log = logging.getLogger(app_name)
 package_by_name = {}
 packages_merge = []
 new_organization_by_name = {}
+notes_grouping_rules = {
+    u"Ministère de la Culture et de la Communication": {
+        u"Département des études, de la prospective et des statistiques": [
+            strings.slugify(u'''Statistiques : résultats de l'enquête 2008 "Les Pratiques Culturelles des Français"'''),
+            ],
+        },
+    }
 organization_id_by_name = {}
 organization_titles_by_name = {}
 period_re = re.compile(ur'du (?P<day_from>[012]\d|3[01])/(?P<month_from>0\d|1[012])/(?P<year_from>[012]\d\d\d)'
     ur' au (?P<day_to>[012]\d|3[01])/(?P<month_to>0\d|1[012])/(?P<year_to>[012]\d\d\d|9999)$')
-grouping_rules = {
+title_grouping_rules = {
+    u"Agence de services et de paiement": {
+        None: [
+            (
+                re.compile(ur"(?i)(?P<core>Registre Parcellaire Graphique : contours des îlots culturaux et leur groupe de cultures majoritaire des exploitations) - (?P<department>.+)$"),
+                None,
+                ('department',),
+                ),
+            ],
+        },
     u"FranceAgriMer - Établissement national des produits de l'agriculture et de la mer": {
         None: [
             (
@@ -388,6 +404,33 @@ def main():
             if isinstance(value, basestring)
             ]
 
+        resources = []
+        for data in entry.get(u'Données', []) + entry.get(u'Documents annexes', []):
+            resource_name = u' '.join(data['Titre'].split()) if data.get('Titre') else None  # Cleanup spaces.
+            resource_name = {
+                u'Accéder au service de téléchargement': None,
+                u'Télécharger': None,
+                }.get(resource_name, resource_name)
+            resources.append(dict(
+                created = entry.get(u'Date de publication'),
+                format = data.get('Format'),
+                last_modified = entry.get(u'Date de dernière modification'),
+                name = resource_name,
+                # package_id (string) – id of package that the resource needs should be added to.
+                url = data['URL'],
+#                revision_id – (optional)
+#                description (string) – (optional)
+#                hash (string) – (optional)
+#                resource_type (string) – (optional)
+#                mimetype (string) – (optional)
+#                mimetype_inner (string) – (optional)
+#                webstore_url (string) – (optional)
+#                cache_url (string) – (optional)
+#                size (int) – (optional)
+#                cache_last_updated (iso date string) – (optional)
+#                webstore_last_updated (iso date string) – (optional)
+                ))
+
         package = dict(
             author = organization_title,  # TODO
 #                author_email = ,
@@ -401,28 +444,7 @@ def main():
             owner_org = organization_id,
 #                relationships_as_object (list of relationship dictionaries) – see package_relationship_create() for the format of relationship dictionaries (optional)
 #                relationships_as_subject (list of relationship dictionaries) – see package_relationship_create() for the format of relationship dictionaries (optional)
-            resources = [
-                dict(
-                    created = entry.get(u'Date de publication'),
-                    format = data.get('Format'),
-                    last_modified = entry.get(u'Date de dernière modification'),
-                    name = u' '.join(data['Titre'].split()) if data.get('Titre') else None,  # Cleanup spaces.
-                    # package_id (string) – id of package that the resource needs should be added to.
-                    url = data['URL'],
-#                        revision_id – (optional)
-#                        description (string) – (optional)
-#                        hash (string) – (optional)
-#                        resource_type (string) – (optional)
-#                        mimetype (string) – (optional)
-#                        mimetype_inner (string) – (optional)
-#                        webstore_url (string) – (optional)
-#                        cache_url (string) – (optional)
-#                        size (int) – (optional)
-#                        cache_last_updated (iso date string) – (optional)
-#                        webstore_last_updated (iso date string) – (optional)
-                    )
-                for data in entry.get(u'Données', []) + entry.get(u'Documents annexes', [])
-                ],
+            resources = resources,
             # state = 'active',
             tags = [
                 dict(
@@ -453,14 +475,14 @@ def main():
         period = entry.get(u'Période')
         if period is not None:
             match = period_re.match(period)
-            assert match is not None, period
-            set_package_extra(package, u'temporal_coverage_from',
-                u'{}-{}-{}'.format(match.group('year_from'), match.group('month_from'), match.group('day_from')))
-            year_to = match.group('year_to')
-            if year_to == u'9999':
-                year_to = '2013'
-            set_package_extra(package, u'temporal_coverage_to',
-                u'{}-{}-{}'.format(year_to, match.group('month_to'), match.group('day_to')))
+            if match is not None:
+                set_package_extra(package, u'temporal_coverage_from',
+                    u'{}-{}-{}'.format(match.group('year_from'), match.group('month_from'), match.group('day_from')))
+                year_to = match.group('year_to')
+                if year_to == u'9999':
+                    year_to = '2013'
+                set_package_extra(package, u'temporal_coverage_to',
+                    u'{}-{}-{}'.format(year_to, match.group('month_to'), match.group('day_to')))
 
         territorial_coverage = entry.get(u'Territoires couverts')
         if territorial_coverage:
@@ -472,18 +494,30 @@ def main():
         assert package_name not in package_by_name, package_name
         package_by_name[package_name] = package
 
-        # Group packages by date and/or territory.
+        # Group packages having the same title except a date and/or other fields (like territory).
         packages_infos_by_pattern = grouped_packages.setdefault(organization_title, {}).setdefault(
             service_title, {})
-        service_grouping_rules = grouping_rules.get(organization_title, {}).get(service_title)
-        if service_grouping_rules is not None:
-            for rule_index, (package_title_re, repetition_type, fields) in enumerate(service_grouping_rules):
+        service_title_grouping_rules = title_grouping_rules.get(organization_title, {}).get(service_title)
+        if service_title_grouping_rules is not None:
+            for rule_index, (package_title_re, repetition_type, fields) in enumerate(service_title_grouping_rules):
                 match = package_title_re.match(package_title)
                 if match is None:
                     packages_infos_by_pattern.setdefault(None, []).append((package_name, package_title))
                 else:
                     packages_infos_by_pattern.setdefault((rule_index, strings.slugify(match.group('core')),
                         repetition_type, fields), []).append((package_name, match.groupdict()))
+
+        # Group packages having the same description.
+        package_notes_slug = strings.slugify(package.get('notes')) or None
+        if package_notes_slug is not None:
+            service_notes_grouping_rules = notes_grouping_rules.get(organization_title, {}).get(service_title)
+            if service_notes_grouping_rules is not None:
+                for rule_index, notes_slug in enumerate(service_notes_grouping_rules, 100):
+                    if package_notes_slug == notes_slug:
+                        packages_infos_by_pattern.setdefault((rule_index, None, None, None), []).append((
+                            package_name, dict(core = package['notes'])))
+                        break
+
 #            elif organization_title == u"Ministère de l'Economie et des Finances":
 #                if service_title == u"Études statistiques en matière fiscale":
 #                    match = re.match(ur'(?i)Impôt sur le revenu (?P<year>\d{4}) (?P<department>.+)$', package_title)
@@ -632,8 +666,7 @@ def main():
                         packages_infos.insert(0, (package_name, dict(core = package_title)))
                         break
             # Merge packages with the same core.
-            for (rule_index, core, repetition_type, fields), packages_infos \
-                    in packages_infos_by_pattern.iteritems():
+            for (rule_index, core, repetition_type, fields), packages_infos in packages_infos_by_pattern.iteritems():
                 if len(packages_infos) == 1:
                     continue
                 merged_package = None
@@ -655,45 +688,50 @@ def main():
                             assert get_package_extra(package, u'temporal_coverage_from', None) is not None, package
                             assert get_package_extra(package, u'temporal_coverage_to', None) is not None, package
                     else:
-                        raise Exception('Unknown repetition_type: {}'.format(repetition_type))
+                        assert repetition_type is None, repetition_type
 
-                    assert len(package['resources']) >= 1, package
-                    original_resource_name = package['resources'][0]['name']
-                    for resource_index, resource in enumerate(package['resources']):
-                        if resource_index == 0 and resource.get('description') is None:
-                            resource['description'] = package.get('notes')
-                        if resource.get('name') is None:
-                            resource['name'] = package['title']
-                            if resource_index > 0:
-                                resource['name'] += u'- document {}'.format(resource_index + 1)
+                    if package['resources']:
+                        original_first_resource_name = package['resources'][0]['name']
+                        for resource_index, resource in enumerate(package['resources']):
+                            if resource_index == 0 and resource.get('description') is None:
+                                resource['description'] = package.get('notes')
+                            if resource.get('name') is None:
+                                resource['name'] = package['title']
+                                if resource_index > 0:
+                                    resource['name'] += u'- document {}'.format(resource_index + 1)
+                            else:
+                                for field in (fields or []):
+                                    field_value = vars.get(field)
+                                    if field_value and field_value not in resource['name']:
+                                        resource['name'] += u' - {}'.format(field_value)
+
+                        if package_index == 0:
+                            merged_package = package.copy()
+                            merged_package['title'] = vars['core']
+                            merged_package['name'] = merged_package_name = u'{}-00000000'.format(
+                                strings.slugify(merged_package['title'])[:100 - len(u'00000000') - 1])
+                            package_by_name[merged_package_name] = merged_package
                         else:
-                            for field in fields:
-                                field_value = vars.get(field)
-                                if field_value and field_value not in resource['name']:
-                                    resource['name'] += u' - {}'.format(field_value)
-
-                    if package_index == 0:
-                        merged_package = package.copy()
-                        merged_package['title'] = vars['core']
-                        merged_package['name'] = merged_package_name = u'{}-00000000'.format(
-                            strings.slugify(merged_package['title'])[:100 - len(u'00000000') - 1])
-                        package_by_name[merged_package_name] = merged_package
+                            if repetition_type is not None:
+                                set_package_extra(merged_package, u'temporal_coverage_from', min(
+                                    get_package_extra(merged_package, u'temporal_coverage_from'),
+                                    get_package_extra(package, u'temporal_coverage_from')))
+                                set_package_extra(merged_package, u'temporal_coverage_to', max(
+                                    get_package_extra(merged_package, u'temporal_coverage_to'),
+                                    get_package_extra(package, u'temporal_coverage_to')))
+                            merged_package['resources'].extend(package['resources'])
+                        merged_first_resource_name = package['resources'][0]['name']
                     else:
-                        set_package_extra(merged_package, u'temporal_coverage_from', min(
-                            get_package_extra(merged_package, u'temporal_coverage_from'),
-                            get_package_extra(package, u'temporal_coverage_from')))
-                        set_package_extra(merged_package, u'temporal_coverage_to', max(
-                            get_package_extra(merged_package, u'temporal_coverage_to'),
-                            get_package_extra(package, u'temporal_coverage_to')))
-                        merged_package['resources'].extend(package['resources'])
+                        original_first_resource_name = None
+                        merged_first_resource_name = None
 
                     packages_merge.append((
                         organization_title,
                         service_title,
                         package['title'],
-                        original_resource_name,
+                        original_first_resource_name,
                         merged_package['title'],
-                        package['resources'][0]['name'],
+                        merged_first_resource_name,
                         ))
 
     for package_name, package in package_by_name.iteritems():

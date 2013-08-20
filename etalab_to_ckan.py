@@ -268,7 +268,7 @@ def main():
     if args.reset:
         # Keep the names of all existing datasets.
         existing_packages_name = set(conv.check(conv.pipe(
-            conv.ckan_json_to_package_list,
+            conv.ckan_json_to_name_list,
             conv.not_none,
             ))(response_dict['result'], state = conv.default_state))
     else:
@@ -276,7 +276,7 @@ def main():
         existing_packages_name = set(
             package_name
             for package_name in conv.check(conv.pipe(
-                conv.ckan_json_to_package_list,
+                conv.ckan_json_to_name_list,
                 conv.not_none,
                 ))(response_dict['result'], state = conv.default_state)
             if etalab_package_name_re.match(package_name) is not None

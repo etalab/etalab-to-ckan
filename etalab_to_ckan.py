@@ -386,7 +386,14 @@ def main():
         log.info(u'Loading data.gouv.fr entries from Wenodata')
         entry_by_etalab_id = collections.OrderedDict()
         job = wenoio.init(server_url = conf['wenodata.site_url'])
-        with job.dataset('/comarquage/metanol/fiches_data.gouv.fr').open(job) as store:
+        with job.dataset('/comarquage/metanol/fiches_data.gouv.fr').open(job) as store, \
+                open('jeux-de-donnees-ignores.txt', 'w') as ignored_packages_file:
+            ignored_packages_csv_writer = csv.writer(ignored_packages_file, delimiter = ';', quotechar = '"',
+                quoting = csv.QUOTE_MINIMAL)
+            ignored_packages_csv_writer.writerow([
+                'Organisation',
+                'Jeu de données',
+                ])
             for etalab_id, entry in store.iteritems():
                 # Ignore datasets that are part of a (frequently used) web-service.
                 ignore_dataset = False
@@ -407,6 +414,10 @@ def main():
                         ignore_dataset = True
                         break
                 if ignore_dataset:
+                    ignored_packages_csv_writer.writerow([
+                        entry[u'Source'].encode('utf-8'),
+                        entry[u'Titre'].encode('utf-8'),
+                        ])
                     continue
                 entry_by_etalab_id[etalab_id] = entry
         assert len(entry_by_etalab_id) > 1, entry_by_etalab_id

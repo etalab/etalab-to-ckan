@@ -57,6 +57,7 @@ etalab_package_name_re = re.compile(ur'.+-(?P<etalab_id>\d{6,8})$')
 existing_groups_name = None
 existing_packages_name = None
 existing_organizations_name = None
+extract_core = lambda match: match.group('core')
 group_id_by_name = {}
 group_name_by_organization_name = {}
 grouped_packages = {}
@@ -85,6 +86,7 @@ title_grouping_rules = {
         None: [
             (
                 re.compile(ur"(?i)(?P<core>Registre Parcellaire Graphique : contours des îlots culturaux et leur groupe de cultures majoritaire des exploitations) - (?P<department>.+)$"),
+                extract_core,
                 None,
                 ('department',),
                 ),
@@ -94,6 +96,7 @@ title_grouping_rules = {
         None: [
             (
                 re.compile(ur"(?i)(?P<core>.+?) semaine (?P<week>\d{1,2})( (?P<year>\d{4}))?$"),
+                extract_core,
                 'week',
                 ('week', 'year'),
                 ),
@@ -103,31 +106,37 @@ title_grouping_rules = {
         None: [
             (
                 re.compile(ur"(?i)(?P<core>Faits constatés annuels par index 4001 et par département) en (?P<year>\d{4})$"),
+                extract_core,
                 'year',
                 ('year',),
                 ),
             (
                 re.compile(ur"(?i)(?P<core>Faits constatés annuels par index 4001 pour les services centraux) en (?P<year>\d{4})$"),
+                extract_core,
                 'year',
                 ('year',),
                 ),
             (
                 re.compile(ur"(?i)(?P<core>Faits constatés par département, par index et par mois), pour l'année (?P<year>\d{4})$"),
+                extract_core,
                 'year',
                 ('year',),
                 ),
             (
                 re.compile(ur"(?i)(?P<core>Faits constatés par départements) (?P<month>[^ ]+) (?P<year>\d{4})$"),
+                extract_core,
                 'year',
                 ('year', 'month'),
                 ),
             (
                 re.compile(ur"(?i)(?P<core>Faits constatés Zone Gendarmerie)$"),
+                extract_core,
                 None,
                 None,
                 ),
             (
                 re.compile(ur"(?i)(?P<core>Faits constatés Zone Police)$"),
+                extract_core,
                 None,
                 None,
                 ),
@@ -137,6 +146,7 @@ title_grouping_rules = {
         None: [
             (
                 re.compile(ur"(?i)(?P<core>.+?) (?P<year>\d{4})$"),
+                extract_core,
                 'year',
                 ('year',),
                 ),
@@ -145,24 +155,52 @@ title_grouping_rules = {
     u"Ministère de l'Economie et des Finances": {
         u"Études statistiques en matière fiscale": [
             (
-                re.compile(ur"(?i)(?P<core>Impôt sur le revenu) (?P<year>\d{4}) (?P<department>.+)$"),
+                re.compile(ur"(?i)(?P<core>Imp[oôÔ]t sur le revenu) (?P<year>\d{4}) (?P<department>.+)$"),
+                extract_core,
                 'year',
                 ('year', 'department'),
                 ),
             (
+                re.compile(ur"(?i)IMP[oôÔ]T SUR LE REVENU \((?P<previous_year>revenus de \d{4})\) (?P<core>.+) (?P<year>\d{4})$"),
+                lambda match: u'IMPÔT SUR LE REVENU - {}'.format(match.group('core')),
+                'year',
+                ('year', 'previous_year'),
+                ),
+            (
                 re.compile(ur"(?i)(?P<core>REI) (?P<year>\d{4}) (?P<department>.+)$"),
+                extract_core,
                 'year',
                 ('year', 'department'),
                 ),
             (
                 re.compile(ur"(?i)(?P<core>Taux de fiscalité directe locale et délibérations) (?P<year>\d{4}) (?P<department>.+)$"),
+                extract_core,
                 'year',
                 ('year', 'department'),
+                ),
+            (
+                re.compile(ur"(?i)(?P<core>.+?) - ann[eéÉ]e (?P<year>\d{4}) -$"),
+                extract_core,
+                'year',
+                ('year',),
+                ),
+            (
+                re.compile(ur"(?i)(?P<core>.+?) ann[eéÉ]e (?P<year>\d{4})$"),
+                extract_core,
+                'year',
+                ('year',),
+                ),
+            (
+                re.compile(ur"(?i)(?P<core>.+?) en (?P<year>\d{4})$"),
+                extract_core,
+                'year',
+                ('year',),
                 ),
             ],
         u"Ministère du Budget, des Comptes publics et de la Réforme de l'Etat, Direction du budget": [
             (
-                re.compile(ur"(?i)(?P<core>Jaune) (?P<year>\d{4}) - Personnels Cabinets Ministériels - (?P<detail>.+)$"),
+                re.compile(ur"(?i)Jaune (?P<year>\d{4}) - Personnels Cabinets Ministériels - (?P<detail>.+)$"),
+                lambda match: u'Jaune - Personnels des cabinets ministériels',
                 'year',
                 ('year', 'detail'),
                 ),
@@ -172,6 +210,7 @@ title_grouping_rules = {
         None: [
             (
                 re.compile(ur"(?i)(?P<core>.+?) - actualisation (?P<year>\d{4})$"),
+                extract_core,
                 'school-year',
                 ('year',),
                 ),
@@ -181,6 +220,7 @@ title_grouping_rules = {
         None: [
             (
                 re.compile(ur"(?i)(?P<core>.+?)( en)? (?P<year>\d{4})$"),
+                extract_core,
                 'year',
                 ('year',),
                 ),
@@ -190,6 +230,7 @@ title_grouping_rules = {
         u"Direction de l'administration pénitentiaire": [
             (
                 re.compile(ur"(?i)(?P<core>.+?). Situation au 1er (?P<month>[^ ]+) (?P<year>\d{4})$"),
+                extract_core,
                 'year',
                 ('year', 'month'),
                 ),
@@ -405,11 +446,11 @@ def main():
                     if url in (
                             u'http://www.bdm.insee.fr/bdm2/choixCriteres.action',  # 2104
                             u'http://www.bdm.insee.fr/bdm2/exporterSeries.action',  # 2104
+                            u'http://www.recensement-2008.insee.fr/chiffresCles.action',  # 281832
                             u'http://www.recensement-2008.insee.fr/exportXLS.action',  # 9996
+                            u'http://www.recensement-2008.insee.fr/exportXLSCC.action',  # 281832
                             u'http://www.recensement-2008.insee.fr/tableauxDetailles.action',  # 9996
                             u'http://www.stats.environnement.developpement-durable.gouv.fr/Eider/selection_series_popup.do',  # 55553
-                            u'http://www.recensement-2008.insee.fr/chiffresCles.action',  # 281832
-                            u'http://www.recensement-2008.insee.fr/exportXLSCC.action',  # 281832
                             ):
                         ignore_dataset = True
                         break
@@ -569,13 +610,18 @@ def main():
             service_title, {})
         service_title_grouping_rules = title_grouping_rules.get(organization_title, {}).get(service_title)
         if service_title_grouping_rules is not None:
-            for rule_index, (package_title_re, repetition_type, fields) in enumerate(service_title_grouping_rules):
+            for rule_index, (package_title_re, core_extractor, repetition_type, fields) in enumerate(
+                    service_title_grouping_rules):
                 match = package_title_re.match(package_title)
                 if match is None:
                     packages_infos_by_pattern.setdefault(None, set()).add((package_name, package_title))
                 else:
-                    packages_infos_by_pattern.setdefault((rule_index, strings.slugify(match.group('core')),
-                        repetition_type, fields), []).append((package_name, match.groupdict()))
+                    core = core_extractor(match)
+                    vars = {}
+                    vars.update(match.groupdict())
+                    vars['core'] = core
+                    packages_infos_by_pattern.setdefault((rule_index, strings.slugify(core), repetition_type, fields),
+                        []).append((package_name, vars))
 
         # Group packages having the same description.
         package_notes_slug = strings.slugify(package.get('notes')) or None

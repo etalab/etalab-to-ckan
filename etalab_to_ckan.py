@@ -153,6 +153,14 @@ title_grouping_rules = {
             ],
         },
     u"Ministère de l'Economie et des Finances": {
+        u"Bureau de la veille économique et des prix": [
+            (
+                re.compile(ur"(?i)(?P<core>Observatoire des prix et des marges .+) (?P<month>[^ ]+) (?P<year>\d{4})$"),
+                extract_core,
+                'year',
+                ('year', 'month'),
+                ),
+            ],
         u"Études statistiques en matière fiscale": [
             (
                 re.compile(ur"(?i)(?P<core>Imp[oôÔ]t sur le revenu) (?P<year>\d{4}) (?P<department>.+)$"),

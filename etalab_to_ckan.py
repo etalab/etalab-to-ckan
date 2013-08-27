@@ -235,6 +235,12 @@ title_merging_rules = {
                 make_merged_package_resources_cleaner('year', 'department'),
                 ),
             (
+                re.compile(ur"(?i)(?P<core>.+?) [eéÉ]mis en (?P<year>\d{4}) (?P<affectation>.+?)$"),
+                lambda match: u'{} - {}'.format(match.group('core'), match.group('affectation')),
+                'year',
+                make_merged_package_resources_cleaner('year'),
+                ),
+            (
                 re.compile(ur"(?i)(?P<core>.+?) - ann[eéÉ]e (?P<year>\d{4}) -$"),
                 extract_merged_package_title,
                 'year',
@@ -265,9 +271,27 @@ title_merging_rules = {
     u"Ministère de l'Education Nationale": {
         None: [
             (
-                re.compile(ur"(?i)(?P<core>.+?) - actualisation (?P<year>\d{4})$"),
+                re.compile(ur"(?i)(?P<core>.+?) ?- ?actualisation (?P<year>\d{4})$"),
                 extract_merged_package_title,
                 'school-year',
+                make_merged_package_resources_cleaner('year'),
+                ),
+            ],
+        u"Direction de l'évaluation, la prospective et la performance": [
+            (
+                re.compile(ur"(?i)(?P<core>.+?) ?- ?actualisation (?P<year>\d{4})$"),
+                extract_merged_package_title,
+                'school-year',
+                make_merged_package_resources_cleaner('year'),
+                ),
+            ],
+        },
+    u"Ministère de l'Intérieur": {
+        u"Direction de la modernisation et de l'action territoriale": [
+            (
+                re.compile(ur"(?i)(?P<core>.+?) au 1er janvier (?P<year>\d{4})$"),
+                extract_merged_package_title,
+                'year',
                 make_merged_package_resources_cleaner('year'),
                 ),
             ],

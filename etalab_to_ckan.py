@@ -117,7 +117,7 @@ notes_merging_rules = {
         },
     }
 organization_id_by_name = {}
-organization_titles_by_name = {}
+organization_titles_by_slug = {}
 period_re = re.compile(ur'du (?P<day_from>[012]\d|3[01])/(?P<month_from>0\d|1[012])/(?P<year_from>[012]\d\d\d)'
     ur' au (?P<day_to>[012]\d|3[01])/(?P<month_to>0\d|1[012])/(?P<year_to>[012]\d\d\d|9999)$')
 title_merging_rules = {
@@ -423,10 +423,10 @@ def main():
             line = line.decode('utf-8').strip()
             assert line.count(u';;') == 2, line.encode('utf-8')
             old_title, main_title, sub_title = line.split(u';;')
-            old_name = strings.slugify(old_title)[:100]
+            old_slug = strings.slugify(old_title)
             main_title = main_title.strip() or None
             if main_title is not None:
-                organization_titles_by_name[old_name] = (main_title, sub_title.strip() or None)
+                organization_titles_by_slug[old_slug] = (main_title, sub_title.strip() or None)
 
     # Load other organizations from file.
     log.info('Updating other organizations from file')
@@ -539,8 +539,8 @@ def main():
         package_title = u' '.join(entry['Titre'].split())  # Cleanup multiple spaces.
         package_name = u'{}-{}'.format(strings.slugify(package_title)[:100 - len(etalab_id_str) - 1],
             etalab_id_str)
-        source_name = strings.slugify(entry.get('Source'))[:100]
-        organization_titles = organization_titles_by_name.get(source_name)
+        source_slug = strings.slugify(entry.get('Source'))
+        organization_titles = organization_titles_by_slug.get(source_slug)
         if organization_titles is None:
             organization_title = entry.get('Source')
             service_title = None

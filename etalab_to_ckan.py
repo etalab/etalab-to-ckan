@@ -190,6 +190,42 @@ title_merging_rules = {
                 make_merged_package_resources_cleaner('year'),
                 ),
             ],
+        u"Direction générale de l'enseignement et de la recherche": [
+            (
+                re.compile(ur"(?i)(?P<core>.+?) à la rentrée (?P<year>\d{4})$"),
+                extract_merged_package_title,
+                'year',
+                make_merged_package_resources_cleaner('year'),
+                ),
+            (
+                re.compile(ur"(?i)(?P<core>.+?) (?P<year>\d{4})$"),
+                extract_merged_package_title,
+                'year',
+                make_merged_package_resources_cleaner('year'),
+                ),
+            ],
+        u"Inventaire forestier national": [
+            (
+                re.compile(ur"(?i)(?P<core>.+?) (?P<year>\d{4})$"),
+                extract_merged_package_title,
+                'year',
+                make_merged_package_resources_cleaner('year'),
+                ),
+            ],
+        u"Mission de la stratégie et des systèmes d'information": [
+            (
+                re.compile(ur"(?i)(?P<core>.+?) à la rentrée (?P<year>\d{4})$"),
+                extract_merged_package_title,
+                'year',
+                make_merged_package_resources_cleaner('year'),
+                ),
+            (
+                re.compile(ur"(?i)(?P<core>.+?) (?P<year>\d{4})$"),
+                extract_merged_package_title,
+                'year',
+                make_merged_package_resources_cleaner('year'),
+                ),
+            ],
         },
     u"Ministère de l'Economie et des Finances": {
         u"Bureau de la veille économique et des prix": [
@@ -287,7 +323,7 @@ title_merging_rules = {
             ],
         },
     u"Ministère de l'Intérieur": {
-        u"Direction de la modernisation et de l'action territoriale": [
+        u"Direction générale des collectivités locales": [
             (
                 re.compile(ur"(?i)(?P<core>.+?) au 1er janvier (?P<year>\d{4})$"),
                 extract_merged_package_title,

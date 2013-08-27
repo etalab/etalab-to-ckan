@@ -48,6 +48,46 @@ from lxml import etree
 import wenoio
 
 
+# Functions used by variables below
+
+
+def extract_merged_package_title(match):
+    return match.group('core')
+
+
+def make_merged_package_resources_cleaner(*fields):
+    def cleanup_merged_package_resources(package, vars):
+        for resource_index, resource in enumerate(package['resources']):
+            if resource_index == 0 and resource.get('description') is None:
+                resource['description'] = package.get('notes')
+
+            resource_name_fragments = []
+            if resource.get('name') is None:
+                resource_name_fragments.append(package['title'])
+                if resource_index > 0:
+                    resource_name_fragments.append(u'document {}'.format(resource_index + 1))
+            else:
+                resource_name_fragments.append(resource['name'])
+            for field in fields:
+                field_value = vars.get(field)
+                if field_value and field_value not in (resource.get('name') or ''):
+                    resource_name_fragments.append(field_value)
+            resource_name = u' - '.join(resource_name_fragments)
+            if len(resource_name) > 50:
+                char_count_to_remove = len(resource_name) - 50 + len(u'...')
+                if char_count_to_remove >= len(resource_name_fragments[0]):
+                    del resource_name_fragments[0]
+                else:
+                    resource_name_fragments[0] = resource_name_fragments[0][:-char_count_to_remove] + u'...'
+                resource_name = u' - '.join(resource_name_fragments)
+            resource['name'] = resource_name
+
+    return cleanup_merged_package_resources
+
+
+#
+
+
 app_name = os.path.splitext(os.path.basename(__file__))[0]
 args = None
 ckan_headers = None
@@ -57,7 +97,6 @@ etalab_package_name_re = re.compile(ur'.+-(?P<etalab_id>\d{6,8})$')
 existing_groups_name = None
 existing_packages_name = None
 existing_organizations_name = None
-extract_core = lambda match: match.group('core')
 group_id_by_name = {}
 group_name_by_organization_name = {}
 grouped_packages = {}
@@ -70,7 +109,7 @@ log = logging.getLogger(app_name)
 package_by_name = {}
 packages_merge = []
 new_organization_by_name = {}
-notes_grouping_rules = {
+notes_merging_rules = {
     u"Ministère de la Culture et de la Communication": {
         u"Département des études, de la prospective et des statistiques": [
             strings.slugify(u'''Statistiques : résultats de l'enquête 2008 "Les Pratiques Culturelles des Français"'''),
@@ -81,14 +120,14 @@ organization_id_by_name = {}
 organization_titles_by_name = {}
 period_re = re.compile(ur'du (?P<day_from>[012]\d|3[01])/(?P<month_from>0\d|1[012])/(?P<year_from>[012]\d\d\d)'
     ur' au (?P<day_to>[012]\d|3[01])/(?P<month_to>0\d|1[012])/(?P<year_to>[012]\d\d\d|9999)$')
-title_grouping_rules = {
+title_merging_rules = {
     u"Agence de services et de paiement": {
         None: [
             (
                 re.compile(ur"(?i)(?P<core>Registre Parcellaire Graphique : contours des îlots culturaux et leur groupe de cultures majoritaire des exploitations) - (?P<department>.+)$"),
-                extract_core,
+                extract_merged_package_title,
                 None,
-                ('department',),
+                make_merged_package_resources_cleaner('department'),
                 ),
             ],
         },
@@ -96,9 +135,9 @@ title_grouping_rules = {
         None: [
             (
                 re.compile(ur"(?i)(?P<core>.+?) semaine (?P<week>\d{1,2})( (?P<year>\d{4}))?$"),
-                extract_core,
+                extract_merged_package_title,
                 'week',
-                ('week', 'year'),
+                make_merged_package_resources_cleaner('week', 'year'),
                 ),
             ],
         },
@@ -106,37 +145,37 @@ title_grouping_rules = {
         None: [
             (
                 re.compile(ur"(?i)(?P<core>Faits constatés annuels par index 4001 et par département) en (?P<year>\d{4})$"),
-                extract_core,
+                extract_merged_package_title,
                 'year',
-                ('year',),
+                make_merged_package_resources_cleaner('year'),
                 ),
             (
                 re.compile(ur"(?i)(?P<core>Faits constatés annuels par index 4001 pour les services centraux) en (?P<year>\d{4})$"),
-                extract_core,
+                extract_merged_package_title,
                 'year',
-                ('year',),
+                make_merged_package_resources_cleaner('year'),
                 ),
             (
                 re.compile(ur"(?i)(?P<core>Faits constatés par département, par index et par mois), pour l'année (?P<year>\d{4})$"),
-                extract_core,
+                extract_merged_package_title,
                 'year',
-                ('year',),
+                make_merged_package_resources_cleaner('year'),
                 ),
             (
                 re.compile(ur"(?i)(?P<core>Faits constatés par départements) (?P<month>[^ ]+) (?P<year>\d{4})$"),
-                extract_core,
+                extract_merged_package_title,
                 'year',
-                ('year', 'month'),
+                make_merged_package_resources_cleaner('year', 'month'),
                 ),
             (
                 re.compile(ur"(?i)(?P<core>Faits constatés Zone Gendarmerie)$"),
-                extract_core,
+                extract_merged_package_title,
                 None,
                 None,
                 ),
             (
                 re.compile(ur"(?i)(?P<core>Faits constatés Zone Police)$"),
-                extract_core,
+                extract_merged_package_title,
                 None,
                 None,
                 ),
@@ -146,9 +185,9 @@ title_grouping_rules = {
         None: [
             (
                 re.compile(ur"(?i)(?P<core>.+?) (?P<year>\d{4})$"),
-                extract_core,
+                extract_merged_package_title,
                 'year',
-                ('year',),
+                make_merged_package_resources_cleaner('year'),
                 ),
             ],
         },
@@ -156,53 +195,62 @@ title_grouping_rules = {
         u"Bureau de la veille économique et des prix": [
             (
                 re.compile(ur"(?i)(?P<core>Observatoire des prix et des marges .+) (?P<month>[^ ]+) (?P<year>\d{4})$"),
-                extract_core,
+                extract_merged_package_title,
                 'year',
-                ('year', 'month'),
+                make_merged_package_resources_cleaner('year', 'month'),
                 ),
             ],
+        u"Direction générale de la concurrence, de la consommation et de la répression des fraudes": [
+            (
+                re.compile(ur"(?i)(?P<core>Observatoire des prix .+) (?P<month>[^ ]+) (?P<year>\d{4})$"),
+                extract_merged_package_title,
+                'year',
+                make_merged_package_resources_cleaner('year', 'month'),
+                ),
+            ],
+
         u"Études statistiques en matière fiscale": [
             (
                 re.compile(ur"(?i)(?P<core>Imp[oôÔ]t sur le revenu) (?P<year>\d{4}) (?P<department>.+)$"),
-                extract_core,
+                extract_merged_package_title,
                 'year',
-                ('year', 'department'),
+                make_merged_package_resources_cleaner('year', 'department'),
                 ),
             (
                 re.compile(ur"(?i)IMP[oôÔ]T SUR LE REVENU \((?P<previous_year>revenus de \d{4})\) (?P<core>.+) (?P<year>\d{4})$"),
                 lambda match: u'IMPÔT SUR LE REVENU - {}'.format(match.group('core')),
                 'year',
-                ('year', 'previous_year'),
+                make_merged_package_resources_cleaner('year', 'previous_year'),
                 ),
             (
                 re.compile(ur"(?i)(?P<core>REI) (?P<year>\d{4}) (?P<department>.+)$"),
-                extract_core,
+                extract_merged_package_title,
                 'year',
-                ('year', 'department'),
+                make_merged_package_resources_cleaner('year', 'department'),
                 ),
             (
                 re.compile(ur"(?i)(?P<core>Taux de fiscalité directe locale et délibérations) (?P<year>\d{4}) (?P<department>.+)$"),
-                extract_core,
+                extract_merged_package_title,
                 'year',
-                ('year', 'department'),
+                make_merged_package_resources_cleaner('year', 'department'),
                 ),
             (
                 re.compile(ur"(?i)(?P<core>.+?) - ann[eéÉ]e (?P<year>\d{4}) -$"),
-                extract_core,
+                extract_merged_package_title,
                 'year',
-                ('year',),
+                make_merged_package_resources_cleaner('year'),
                 ),
             (
                 re.compile(ur"(?i)(?P<core>.+?) ann[eéÉ]e (?P<year>\d{4})$"),
-                extract_core,
+                extract_merged_package_title,
                 'year',
-                ('year',),
+                make_merged_package_resources_cleaner('year'),
                 ),
             (
                 re.compile(ur"(?i)(?P<core>.+?) en (?P<year>\d{4})$"),
-                extract_core,
+                extract_merged_package_title,
                 'year',
-                ('year',),
+                make_merged_package_resources_cleaner('year'),
                 ),
             ],
         u"Ministère du Budget, des Comptes publics et de la Réforme de l'Etat, Direction du budget": [
@@ -210,7 +258,7 @@ title_grouping_rules = {
                 re.compile(ur"(?i)Jaune (?P<year>\d{4}) - Personnels Cabinets Ministériels - (?P<detail>.+)$"),
                 lambda match: u'Jaune - Personnels des cabinets ministériels',
                 'year',
-                ('year', 'detail'),
+                make_merged_package_resources_cleaner('year', 'detail'),
                 ),
             ],
         },
@@ -218,9 +266,9 @@ title_grouping_rules = {
         None: [
             (
                 re.compile(ur"(?i)(?P<core>.+?) - actualisation (?P<year>\d{4})$"),
-                extract_core,
+                extract_merged_package_title,
                 'school-year',
-                ('year',),
+                make_merged_package_resources_cleaner('year'),
                 ),
             ],
         },
@@ -228,9 +276,9 @@ title_grouping_rules = {
         None: [
             (
                 re.compile(ur"(?i)(?P<core>.+?)( en)? (?P<year>\d{4})$"),
-                extract_core,
+                extract_merged_package_title,
                 'year',
-                ('year',),
+                make_merged_package_resources_cleaner('year'),
                 ),
             ],
         },
@@ -238,9 +286,15 @@ title_grouping_rules = {
         u"Direction de l'administration pénitentiaire": [
             (
                 re.compile(ur"(?i)(?P<core>.+?). Situation au 1er (?P<month>[^ ]+) (?P<year>\d{4})$"),
-                extract_core,
+                extract_merged_package_title,
                 'year',
-                ('year', 'month'),
+                make_merged_package_resources_cleaner('year', 'month'),
+                ),
+            (
+                re.compile(ur"(?i)(?P<core>Statistiques trimestrielles de la population prise en charge en milieu fermé)\. (?P<period>.+)$"),
+                extract_merged_package_title,
+                None,
+                make_merged_package_resources_cleaner('period'),
                 ),
             ],
         },
@@ -616,30 +670,30 @@ def main():
         # Group packages having the same title except a date and/or other fields (like territory).
         packages_infos_by_pattern = grouped_packages.setdefault(organization_title, {}).setdefault(
             service_title, {})
-        service_title_grouping_rules = title_grouping_rules.get(organization_title, {}).get(service_title)
-        if service_title_grouping_rules is not None:
-            for rule_index, (package_title_re, core_extractor, repetition_type, fields) in enumerate(
-                    service_title_grouping_rules):
+        service_title_merging_rules = title_merging_rules.get(organization_title, {}).get(service_title)
+        if service_title_merging_rules is not None:
+            for rule_index, (package_title_re, merged_package_title_extractor, repetition_type,
+                    merged_package_resources_cleaner) in enumerate(service_title_merging_rules):
                 match = package_title_re.match(package_title)
                 if match is None:
                     packages_infos_by_pattern.setdefault(None, set()).add((package_name, package_title))
                 else:
-                    core = core_extractor(match)
+                    merged_package_title = merged_package_title_extractor(match)
                     vars = {}
                     vars.update(match.groupdict())
-                    vars['core'] = core
-                    packages_infos_by_pattern.setdefault((rule_index, strings.slugify(core), repetition_type, fields),
-                        []).append((package_name, vars))
+                    vars['merged_package_title'] = merged_package_title
+                    packages_infos_by_pattern.setdefault((rule_index, strings.slugify(merged_package_title),
+                        repetition_type, merged_package_resources_cleaner), []).append((package_name, vars))
 
         # Group packages having the same description.
         package_notes_slug = strings.slugify(package.get('notes')) or None
         if package_notes_slug is not None:
-            service_notes_grouping_rules = notes_grouping_rules.get(organization_title, {}).get(service_title)
-            if service_notes_grouping_rules is not None:
-                for rule_index, notes_slug in enumerate(service_notes_grouping_rules, 100):
+            service_notes_merging_rules = notes_merging_rules.get(organization_title, {}).get(service_title)
+            if service_notes_merging_rules is not None:
+                for rule_index, notes_slug in enumerate(service_notes_merging_rules, 100):
                     if package_notes_slug == notes_slug:
                         packages_infos_by_pattern.setdefault((rule_index, None, None, None), []).append((
-                            package_name, dict(core = package['notes'])))
+                            package_name, dict(merged_package_title = package['notes'])))
                         break
 
 #            elif organization_title == u"Ministère de l'Economie et des Finances":
@@ -781,20 +835,22 @@ def main():
     log.info(u'Merging datasets')
     for organization_title, organization_grouped_packages in grouped_packages.iteritems():
         for service_title, packages_infos_by_pattern in organization_grouped_packages.iteritems():
-            # First, try to regroup ungrouped packages with a group that uses the name of the package as core.
+            # First, try to regroup ungrouped packages with a group that uses the name of the package as slug.
             ungrouped_packages_infos = packages_infos_by_pattern.pop(None, [])
             for package_name, package_title in ungrouped_packages_infos:
                 package_slug = strings.slugify(package_title)
-                for (rule_index, core, repetition_type, fields), packages_infos in packages_infos_by_pattern.iteritems():
-                    if package_slug == core:
+                for (rule_index, merged_package_slug, repetition_type, merged_package_resources_cleaner), \
+                        packages_infos in packages_infos_by_pattern.iteritems():
+                    if package_slug == merged_package_slug:
                         for other_package_name, other_vars in packages_infos:
                             if package_name == other_package_name:
                                 break
                         else:
-                            packages_infos.insert(0, (package_name, dict(core = package_title)))
+                            packages_infos.insert(0, (package_name, dict(merged_package_title = package_title)))
                         break
-            # Merge packages with the same core.
-            for (rule_index, core, repetition_type, fields), packages_infos in packages_infos_by_pattern.iteritems():
+            # Merge packages with the same merged_package_slug.
+            for (rule_index, merged_package_slug, repetition_type, merged_package_resources_cleaner), packages_infos \
+                    in packages_infos_by_pattern.iteritems():
                 if len(packages_infos) == 1:
                     continue
                 merged_package = None
@@ -820,22 +876,13 @@ def main():
 
                     if package['resources']:
                         original_first_resource_name = package['resources'][0]['name']
-                        for resource_index, resource in enumerate(package['resources']):
-                            if resource_index == 0 and resource.get('description') is None:
-                                resource['description'] = package.get('notes')
-                            if resource.get('name') is None:
-                                resource['name'] = package['title']
-                                if resource_index > 0:
-                                    resource['name'] += u'- document {}'.format(resource_index + 1)
-                            else:
-                                for field in (fields or []):
-                                    field_value = vars.get(field)
-                                    if field_value and field_value not in resource['name']:
-                                        resource['name'] += u' - {}'.format(field_value)
+                        if merged_package_resources_cleaner is None:
+                            merged_package_resources_cleaner = make_merged_package_resources_cleaner()
+                        merged_package_resources_cleaner(package, vars)
 
                         if package_index == 0:
                             merged_package = package.copy()
-                            merged_package['title'] = vars['core']
+                            merged_package['title'] = vars['merged_package_title']
                             merged_package['name'] = merged_package_name = u'{}-00000000'.format(
                                 strings.slugify(merged_package['title'])[:100 - len(u'00000000') - 1])
                             package_by_name[merged_package_name] = merged_package

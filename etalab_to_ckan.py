@@ -885,6 +885,7 @@ def main():
                             merged_package['title'] = vars['merged_package_title']
                             merged_package['name'] = merged_package_name = u'{}-00000000'.format(
                                 strings.slugify(merged_package['title'])[:100 - len(u'00000000') - 1])
+                            set_package_extra(merged_package, u'territorial_coverage', u'Country/FR')
                             package_by_name[merged_package_name] = merged_package
                         else:
                             if repetition_type is not None:

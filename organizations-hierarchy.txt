@@ -51,6 +51,7 @@ Ministère de l'Intérieur, de l'Outre-mer, des Collectivités territoriales et 
 Ministère de la Culture et de la Communication, Département de l'enseignement supérieur, de la recherche et de la technologie;;Ministère de la Culture et de la Communication;;Département de l'enseignement supérieur, de la recherche et de la technologie
 Ministère de la Défense et des Anciens combattants;;Ministère de la Défense;;
 Ministère de la Défense et des Anciens combattants, Caisse nationale militaire de sécurité sociale;;Ministère de la Défense;;Caisse nationale militaire de sécurité sociale
+Ministère de la Défense et des Anciens combattants, Direction des ressources humaines du ministère de la Défense;;Ministère de la Défense;;Direction des ressources humaines du ministère de la Défense
 Ministère de la Culture et de la Communication, Direction générale des patrimoines;;Ministère de la Culture et de la Communication;;Direction générale des patrimoines
 Ministère de la Culture et de la Communication, Bureau de l'observation, de la performance et du contrôle de gestion;;Ministère de la Culture et de la Communication;;Bureau de l'observation, de la performance et du contrôle de gestion
 Ministère de l'Intérieur, de l'Outre-mer, des Collectivités territoriales et de l'Immigration, Bureau des services d'incendie et de secours;;Ministère de l'Intérieur;;Bureau des services d'incendie et de secours
@@ -108,3 +109,4 @@ Ministère de la Ville, Secrétariat général du Comité interministériel des 
 Premier Ministre, Service d'information du Gouvernement;;Premier Ministre;;Service d'information du Gouvernement
 Premier Ministre, Commissaire général à l'investissement;;Premier Ministre;;Commissaire général à l'investissement
 Premier Ministre, Mission interministérielle de vigilance et de lutte contre les dérives sectaires;;Premier Ministre;;Mission interministérielle de vigilance et de lutte contre les dérives sectaires
+Ministère de l’Enseignement Supérieur et de la Recherche;;Ministère de l'Enseignement supérieur et de la Recherche;;Département des outils d'aide au pilotage

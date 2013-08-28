@@ -56,10 +56,19 @@ def extract_merged_package_title(match):
 
 
 def make_merged_package_resources_cleaner(*fields):
-    def cleanup_merged_package_resources(package, vars):
+    def cleanup_merged_package_resources(package, vars, same_notes = False):
+        if same_notes:
+            resource_description = None
+        else:
+            resource_description = package.get('notes')
+            # Set to empty string instead of None (or removing it) to ensure that previous value in CKAN is erased.
+            package['notes'] = u''
         for resource_index, resource in enumerate(package['resources']):
-            if resource_index == 0 and resource.get('description') is None:
-                resource['description'] = package.get('notes')
+            if resource_index == 0 and resource_description:
+                if resource.get('description'):
+                    resource['description'] = u'{}\n\n{}'.format(resource_description, resource['description'])
+                else:
+                    resource['description'] = resource_description
 
             resource_name_fragments = []
             if resource.get('name') is None:
@@ -70,7 +79,10 @@ def make_merged_package_resources_cleaner(*fields):
                 resource_name_fragments.append(resource['name'])
             for field in fields:
                 field_value = vars.get(field)
-                if field_value and field_value not in (resource.get('name') or ''):
+                if field_value and not any(
+                        field_value in fragment
+                        for fragment in resource_name_fragments
+                        ):
                     resource_name_fragments.append(field_value)
             resource_name = u' - '.join(resource_name_fragments)
             if len(resource_name) > 50:
@@ -915,6 +927,22 @@ def main():
                     continue
                 merged_package = None
                 packages_infos.sort(key = lambda (package_name, vars): strings.slugify(package_name))
+
+                last_notes_slug = None
+                for package_index, (package_name, vars) in enumerate(packages_infos):
+                    package = package_by_name[package_name]
+                    notes = package.get('notes')
+                    if notes is not None:
+                        notes_slug = strings.slugify(notes) or None
+                        if notes_slug is not None:
+                            if last_notes_slug is None:
+                                last_notes_slug = notes_slug
+                            elif notes_slug != last_notes_slug:
+                                same_notes = False
+                                break
+                else:
+                    same_notes = True
+
                 for package_index, (package_name, vars) in enumerate(packages_infos):
                     package = package_by_name.pop(package_name)
 
@@ -938,7 +966,7 @@ def main():
                         original_first_resource_name = package['resources'][0]['name']
                         if merged_package_resources_cleaner is None:
                             merged_package_resources_cleaner = make_merged_package_resources_cleaner()
-                        merged_package_resources_cleaner(package, vars)
+                        merged_package_resources_cleaner(package, vars, same_notes = same_notes)
 
                         if package_index == 0:
                             merged_package = package.copy()

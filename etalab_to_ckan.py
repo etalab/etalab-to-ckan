@@ -141,6 +141,12 @@ title_merging_rules = {
                 None,
                 make_merged_package_resources_cleaner('department'),
                 ),
+            (
+                re.compile(ur"(?i)(?P<core>.+?), pour l'exercice (?P<year>\d{4})$"),
+                extract_merged_package_title,
+                'year',
+                make_merged_package_resources_cleaner('year'),
+                ),
             ],
         },
     u"FranceAgriMer - Établissement national des produits de l'agriculture et de la mer": {

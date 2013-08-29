@@ -1,9 +1,9 @@
- Ministère des Affaires Etrangères;;;;
+Ministère des Affaires Etrangères;;;;
 Conseil général du Loir et Cher;;Conseil général de Loir-et-Cher;;
 Conseil général de Loir-et-Cher;;;;
 Ministère de l'Education Nationale;;;;
 Ministère de la Justice;;;;
-Ministère de l’Economie et des Finances;;;;
+Ministère de l'Economie et des Finances;;;;
 Ministère des Affaires sociales et de la Santé;;;;
 Ministère de l'Egalité des Territoires et du Logement;;;;
 Ministère de l'Intérieur;;;;
@@ -12,10 +12,10 @@ Ministère du Redressement productif;;;;
 Ministère de la Défense;;;;
 Ministère de l'Ecologie du Développement Durable et de l'Energie;;;;
 Ministère du travail, de l'emploi, de la formation professionnelle et du dialogue social;;;;
-Ministère de l’Enseignement Supérieur et de la Recherche;;;;
+Ministère de l'Enseignement supérieur et de la Recherche;;;;
 Institut National de la Statistique et des Etudes Economiques (INSEE);;;;
 Ministère de la Culture et de la Communication;;;;
-Ministère de la Réforme de l’Etat, de la décentralisation et de la Fonction publique;;;;
+Ministère de la Réforme de l'Etat, de la décentralisation et de la Fonction publique;;;;
 Ministère des Sports, de la Jeunesse, de l'Education populaire et de la vie associative;;;;
 Institut National de l'Information Géographique et Forestière;;;;
 Régie autonome des transports parisiens (RATP);;;;
@@ -26,8 +26,8 @@ Ministère de l'Intérieur, de l'Outre-mer, des Collectivités territoriales et 
 Ministère de l'Intérieur, de l'Outre-mer, des Collectivités territoriales et de l'Immigration, Direction générale des collectivités locales;;Ministère de l'Intérieur;;Direction générale des collectivités locales
 Ministère de l'Intérieur, de l'Outre-mer, des Collectivités territoriales et de l'Immigration, Secrétariat général du ministère de l'Intérieur;;Ministère de l'Intérieur;;Secrétariat général du ministère de l'Intérieur
 Ministère de l'Intérieur, de l'Outre-mer, des Collectivités territoriales et de l'Immigration, Bureau des élections et études politiques;;Ministère de l'Intérieur;;Bureau des élections et études politiques
-Ministère de l’Agriculture, de l’Agroalimentaire et de la Forêt;;;;
-Ministère de l’artisanat, du commerce et du tourisme;;;;
+Ministère de l'Agriculture, de l'Agroalimentaire et de la Forêt;;;;
+Ministère de l'artisanat, du commerce et du tourisme;;;;
 Ministère du Budget, des Comptes publics et de la Réforme de l'Etat, Direction du budget;;Ministère de l'Economie et des Finances;;Ministère du Budget, des Comptes publics et de la Réforme de l'Etat, Direction du budget
 Ministère de l'Ecologie, du Développement durable, des Transports et du Logement;;Ministère de l'Ecologie du Développement Durable et de l'Energie;;
 Ministère du Travail, de l'Emploi et de la Santé;; Ministère du travail, de l'emploi, de la formation professionnelle et du dialogue social;;
@@ -58,13 +58,13 @@ Ministère de l'Intérieur, de l'Outre-mer, des Collectivités territoriales et 
 Premier Ministre, Secrétariat général;;Premier Ministre;;Secrétariat général
 Ministère de la Culture et de la Communication, Direction générale des médias et des industries culturelles;;Ministère de la Culture et de la Communication;;Direction générale des médias et des industries culturelles
 Ministère de l'Economie, des Finances et de l'Industrie, Direction générale de la compétitivité, de l'industrie et des services;;Ministère de l'Economie et des Finances;;Direction générale de la compétitivité, de l'industrie et des services
-Ministère de l'Agriculture, de l'Alimentation, de la Pèche, de la Ruralité et de l'Aménagement du territoire;;Ministère de l’Agriculture, de l’Agroalimentaire et de la Forêt;;
-Ministère de l'Agriculture, de l'Alimentation, de la Pèche, de la Ruralité et de l'Aménagement du territoire, Service de la statistique et de la prospective;;Ministère de l’Agriculture, de l’Agroalimentaire et de la Forêt;;Service de la statistique et de la prospective
-Ministère de l'Agriculture, de l'Alimentation, de la Pèche, de la Ruralité et de l'Aménagement du territoire, Mission de la stratégie et des systèmes d'information;;Ministère de l’Agriculture, de l’Agroalimentaire et de la Forêt;;Mission de la stratégie et des systèmes d'information
-Ministère de l'Agriculture, de l'Alimentation, de la Pèche, de la Ruralité et de l'Aménagement du territoire, Inventaire forestier national;;Ministère de l’Agriculture, de l’Agroalimentaire et de la Forêt;;Inventaire forestier national
-Ministère de l'Agriculture, de l'Alimentation, de la Pèche, de la Ruralité et de l'Aménagement du territoire, Direction générale de l'alimentation;;Ministère de l’Agriculture, de l’Agroalimentaire et de la Forêt;;Direction générale de l'alimentation
-Ministère de l'Agriculture, de l'Alimentation, de la Pèche, de la Ruralité et de l'Aménagement du territoire, Direction générale de l'enseignement et de la recherche;;Ministère de l’Agriculture, de l’Agroalimentaire et de la Forêt;;Direction générale de l'enseignement et de la recherche
-Ministère de l'Agriculture, de l'Alimentation, de la Pèche, de la Ruralité et de l'Aménagement du territoire, Direction générale des politiques agricole, agroalimentaire et des territoires;;Ministère de l’Agriculture, de l’Agroalimentaire et de la Forêt;;Direction générale des politiques agricole, agroalimentaire et des territoires
+Ministère de l'Agriculture, de l'Alimentation, de la Pèche, de la Ruralité et de l'Aménagement du territoire;;Ministère de l'Agriculture, de l'Agroalimentaire et de la Forêt;;
+Ministère de l'Agriculture, de l'Alimentation, de la Pèche, de la Ruralité et de l'Aménagement du territoire, Service de la statistique et de la prospective;;Ministère de l'Agriculture, de l'Agroalimentaire et de la Forêt;;Service de la statistique et de la prospective
+Ministère de l'Agriculture, de l'Alimentation, de la Pèche, de la Ruralité et de l'Aménagement du territoire, Mission de la stratégie et des systèmes d'information;;Ministère de l'Agriculture, de l'Agroalimentaire et de la Forêt;;Mission de la stratégie et des systèmes d'information
+Ministère de l'Agriculture, de l'Alimentation, de la Pèche, de la Ruralité et de l'Aménagement du territoire, Inventaire forestier national;;Ministère de l'Agriculture, de l'Agroalimentaire et de la Forêt;;Inventaire forestier national
+Ministère de l'Agriculture, de l'Alimentation, de la Pèche, de la Ruralité et de l'Aménagement du territoire, Direction générale de l'alimentation;;Ministère de l'Agriculture, de l'Agroalimentaire et de la Forêt;;Direction générale de l'alimentation
+Ministère de l'Agriculture, de l'Alimentation, de la Pèche, de la Ruralité et de l'Aménagement du territoire, Direction générale de l'enseignement et de la recherche;;Ministère de l'Agriculture, de l'Agroalimentaire et de la Forêt;;Direction générale de l'enseignement et de la recherche
+Ministère de l'Agriculture, de l'Alimentation, de la Pèche, de la Ruralité et de l'Aménagement du territoire, Direction générale des politiques agricole, agroalimentaire et des territoires;;Ministère de l'Agriculture, de l'Agroalimentaire et de la Forêt;;Direction générale des politiques agricole, agroalimentaire et des territoires
 Ministère de l'Economie, des Finances et de l'Industrie, Direction générale du Trésor;;Ministère de l'Economie et des Finances;;Direction générale du Trésor
 Ministère de la Défense et des Anciens combattants, Observatoire économique de la défense;;Ministère de la Défense;;Observatoire économique de la défense
 Ministère de la Défense et des Anciens combattants, SIRPA Terre;;Ministère de la Défense;;SIRPA Terre

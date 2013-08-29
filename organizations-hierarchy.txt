@@ -109,4 +109,4 @@ Ministère de la Ville, Secrétariat général du Comité interministériel des 
 Premier Ministre, Service d'information du Gouvernement;;Premier Ministre;;Service d'information du Gouvernement
 Premier Ministre, Commissaire général à l'investissement;;Premier Ministre;;Commissaire général à l'investissement
 Premier Ministre, Mission interministérielle de vigilance et de lutte contre les dérives sectaires;;Premier Ministre;;Mission interministérielle de vigilance et de lutte contre les dérives sectaires
-Ministère de l’Enseignement Supérieur et de la Recherche;;Ministère de l'Enseignement supérieur et de la Recherche;;Département des outils d'aide au pilotage
+Ministère de l'Enseignement supérieur et de la Recherche, Département des outils d'aide au pilotage;;Ministère de l'Enseignement supérieur et de la Recherche;;Département des outils d'aide au pilotage

@@ -6,7 +6,7 @@
 # By: Emmanuel Raviart <emmanuel@raviart.com>
 #
 # Copyright (C) 2013 Emmanuel Raviart
-# http://gitorious.org/etalab/etalab-to-ckan
+# http://github.com/etalab/etalab-to-ckan
 #
 # This file is part of Etalab-to-CKAN.
 #

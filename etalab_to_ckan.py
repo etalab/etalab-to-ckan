@@ -142,7 +142,17 @@ title_merging_rules = {
                 make_merged_package_resources_cleaner('department'),
                 ),
             (
-                re.compile(ur"(?i)(?P<core>.+?), pour l'exercice (?P<year>\d{4})$"),
+                re.compile(ur"(?i)(?P<core>.+?), pour l'exercice (?P<year>\d{4})\.?$"),
+                extract_merged_package_title,
+                'year',
+                make_merged_package_resources_cleaner('year'),
+                ),
+            ],
+        },
+    u"Agence Technique de l'information sur l'Hospitalisation": {
+        None: [
+            (
+                re.compile(ur"(?i)(?P<core>.+?) - (?P<year>\d{4})$"),
                 extract_merged_package_title,
                 'year',
                 make_merged_package_resources_cleaner('year'),

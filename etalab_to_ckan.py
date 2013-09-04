@@ -693,13 +693,13 @@ def main():
                 ))
 
         package = dict(
-            author = organization_title,  # TODO
-#                author_email = ,
+            author = service_title or u'',  # TODO
+#                author_email = u'',
             extras = extras,
             # groups is added below.
             license_id = license_id,
-            maintainer = service_title or u'',  # Don't duplicate with the author, because it is useless.
-#                maintainer_email = ,
+            maintainer = u'',
+#            maintainer_email = u'',
             name = package_name,
             notes = entry.get('Description'),
             owner_org = organization_id,

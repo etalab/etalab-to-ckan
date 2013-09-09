@@ -1209,10 +1209,10 @@ def upsert_group(description = None, image_url = None, title = None):
 #            response = urllib2.urlopen(request, urllib.quote(json.dumps(group)))
 #        except urllib2.HTTPError as response:
 #            response_text = response.read()
+#            log.error(u'An exception occured while updating group: {0}'.format(group))
 #            try:
 #                response_dict = json.loads(response_text)
 #            except ValueError:
-#                log.error(u'An exception occured while updating group: {0}'.format(group))
 #                log.error(response_text)
 #                group_id_by_name[name] = None
 #                return None
@@ -1236,10 +1236,10 @@ def upsert_group(description = None, image_url = None, title = None):
             response = urllib2.urlopen(request, urllib.quote(json.dumps(group)))
         except urllib2.HTTPError as response:
             response_text = response.read()
+            log.error(u'An exception occured while creating group: {0}'.format(group))
             try:
                 response_dict = json.loads(response_text)
             except ValueError:
-                log.error(u'An exception occured while creating group: {0}'.format(group))
                 log.error(response_text)
                 group_id_by_name[name] = None
                 return None
@@ -1291,10 +1291,10 @@ def upsert_organization(description = None, image_url = None, title = None):
                 response = urllib2.urlopen(request, urllib.quote(json.dumps(organization)))
             except urllib2.HTTPError as response:
                 response_text = response.read()
+                log.error(u'An exception occured while updating organization: {0}'.format(organization))
                 try:
                     response_dict = json.loads(response_text)
                 except ValueError:
-                    log.error(u'An exception occured while updating organization: {0}'.format(organization))
                     log.error(response_text)
                     organization_id_by_name[name] = None
                     return None
@@ -1318,10 +1318,10 @@ def upsert_organization(description = None, image_url = None, title = None):
             response = urllib2.urlopen(request, urllib.quote(json.dumps(organization)))
         except urllib2.HTTPError as response:
             response_text = response.read()
+            log.error(u'An exception occured while creating organization: {0}'.format(organization))
             try:
                 response_dict = json.loads(response_text)
             except ValueError:
-                log.error(u'An exception occured while creating organization: {0}'.format(organization))
                 log.error(response_text)
                 organization_id_by_name[name] = None
                 return None

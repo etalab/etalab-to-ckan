@@ -85,13 +85,13 @@ def make_merged_package_resources_cleaner(*fields):
                         ):
                     resource_name_fragments.append(field_value)
             resource_name = u' - '.join(resource_name_fragments)
-            if len(resource_name) > 50:
-                char_count_to_remove = len(resource_name) - 50 + len(u'...')
-                if char_count_to_remove >= len(resource_name_fragments[0]):
-                    del resource_name_fragments[0]
-                else:
-                    resource_name_fragments[0] = resource_name_fragments[0][:-char_count_to_remove] + u'...'
-                resource_name = u' - '.join(resource_name_fragments)
+#            if len(resource_name) > 50:
+#                char_count_to_remove = len(resource_name) - 50 + len(u'...')
+#                if char_count_to_remove >= len(resource_name_fragments[0]):
+#                    del resource_name_fragments[0]
+#                else:
+#                    resource_name_fragments[0] = resource_name_fragments[0][:-char_count_to_remove] + u'...'
+#                resource_name = u' - '.join(resource_name_fragments)
             resource['name'] = resource_name
 
     return cleanup_merged_package_resources

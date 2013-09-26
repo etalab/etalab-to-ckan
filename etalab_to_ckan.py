@@ -5,7 +5,7 @@
 # Etalab-to-CKAN -- Tools to help migration of data.gouv.fr to CKAN
 # By: Emmanuel Raviart <emmanuel@raviart.com>
 #
-# Copyright (C) 2013 Emmanuel Raviart
+# Copyright (C) 2013 Etalab
 # http://github.com/etalab/etalab-to-ckan
 #
 # This file is part of Etalab-to-CKAN.

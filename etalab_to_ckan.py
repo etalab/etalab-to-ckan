@@ -656,6 +656,7 @@ def main():
                 u'Description',
                 u'Documents annexes',
                 u'Données',
+                u'Fréquence de mise à jour',
                 u'Licence',
                 u'Mots-clés',
                 u'Période',
@@ -696,6 +697,7 @@ def main():
             author = service_title or u'',  # TODO
 #                author_email = u'',
             extras = extras,
+            frequency = entry.get(u'Fréquence de mise à jour'),
             # groups is added below.
             license_id = license_id,
             maintainer = u'',

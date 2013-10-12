@@ -1015,78 +1015,7 @@ def main():
                         ))
 
     for package_name, package in package_by_name.iteritems():
-        if package_name in existing_packages_name:
-            existing_packages_name.remove(package_name)
-            if not args.dry_run:
-                request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
-                    '/api/3/action/package_update?id={}'.format(package_name)), headers = ckan_headers)
-                try:
-                    response = urllib2.urlopen(request, urllib.quote(json.dumps(package)))
-                except urllib2.HTTPError as response:
-                    response_text = response.read()
-                    try:
-                        response_dict = json.loads(response_text)
-                    except ValueError:
-                        log.error(u'An exception occured while updating package: {}'.format(package))
-                        log.error(response_text)
-                        continue
-                    log.error(u'An error occured while updating package: {}'.format(package))
-                    for key, value in response_dict.iteritems():
-                        print '{} = {}'.format(key, value)
-                else:
-                    assert response.code == 200
-                    response_dict = json.loads(response.read())
-                    assert response_dict['success'] is True
-#                    updated_package = response_dict['result']
-#                    pprint.pprint(updated_package)
-        elif not args.dry_run:
-            request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'], '/api/3/action/package_create'),
-                headers = ckan_headers)
-            try:
-                response = urllib2.urlopen(request, urllib.quote(json.dumps(package)))
-            except urllib2.HTTPError as response:
-                response_text = response.read()
-                try:
-                    response_dict = json.loads(response_text)
-                except ValueError:
-                    log.error(u'An exception occured while creating package: {}'.format(package))
-                    log.error(response_text)
-                    continue
-                error = response_dict.get('error', {})
-                if error.get('__type') == u'Validation Error' and error.get('name'):
-                    # A package with the same name already exists. Maybe it is deleted. Undelete it.
-                    package['state'] = 'active'
-                    request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
-                        '/api/3/action/package_update?id={}'.format(package_name)), headers = ckan_headers)
-                    try:
-                        response = urllib2.urlopen(request, urllib.quote(json.dumps(package)))
-                    except urllib2.HTTPError as response:
-                        response_text = response.read()
-                        try:
-                            response_dict = json.loads(response_text)
-                        except ValueError:
-                            log.error(u'An exception occured while undeleting package: {}'.format(package))
-                            log.error(response_text)
-                            continue
-                        log.error(u'An error occured while undeleting package: {}'.format(package))
-                        for key, value in response_dict.iteritems():
-                            print '{} = {}'.format(key, value)
-                    else:
-                        assert response.code == 200
-                        response_dict = json.loads(response.read())
-                        assert response_dict['success'] is True
-#                        updated_package = response_dict['result']
-#                        pprint.pprint(updated_package)
-                else:
-                    log.error(u'An error occured while creating package: {}'.format(package))
-                    for key, value in response_dict.iteritems():
-                        print '{} = {}'.format(key, value)
-            else:
-                assert response.code == 200
-                response_dict = json.loads(response.read())
-                assert response_dict['success'] is True
-#                created_package = response_dict['result']
-#                pprint.pprint(created_package)
+        upsert_package(package_name, package)
 
     print 'Obsolete packages: {}'.format(existing_packages_name)
     if not args.dry_run:
@@ -1339,6 +1268,82 @@ def upsert_organization(description = None, image_url = None, title = None):
     assert organization['name'] == name
     organization_id_by_name[name] = organization['id']
     return organization['id']
+
+
+def upsert_package(name, package):
+    existing_packages_name.discard(name)
+    if not args.dry_run:
+        request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
+            'api/3/action/package_show?id={}'.format(name)), headers = ckan_headers)
+        try:
+            response = urllib2.urlopen(request)
+        except urllib2.HTTPError as response:
+            if response.code != 404:
+                raise
+            existing_package = {}
+        else:
+            response_text = response.read()
+            try:
+                response_dict = json.loads(response_text)
+            except ValueError:
+                log.error(u'An exception occured while reading package: {0}'.format(package))
+                log.error(response_text)
+                raise
+            existing_package = conv.check(conv.pipe(
+                conv.make_ckan_json_to_package(drop_none_values = True),
+                conv.not_none,
+                ))(response_dict['result'], state = conv.default_state)
+        if existing_package.get('id') is None:
+            # Create package.
+            request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'], 'api/3/action/package_create'),
+                headers = ckan_headers)
+            try:
+                response = urllib2.urlopen(request, urllib.quote(json.dumps(package)))
+            except urllib2.HTTPError as response:
+                response_text = response.read()
+                log.error(u'An exception occured while creating package: {0}'.format(package))
+                try:
+                    response_dict = json.loads(response_text)
+                except ValueError:
+                    log.error(response_text)
+                    raise
+                for key, value in response_dict.iteritems():
+                    log.debug('{} = {}'.format(key, value))
+                raise
+            else:
+                assert response.code == 200
+                response_dict = json.loads(response.read())
+                assert response_dict['success'] is True
+                created_package = response_dict['result']
+#                pprint.pprint(created_package)
+                package['id'] = created_package['id']
+        else:
+            # Update package.
+            package['id'] = existing_package['id']
+            package['state'] = 'active'
+
+            request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
+                'api/3/action/package_update?id={}'.format(name)), headers = ckan_headers)
+            try:
+                response = urllib2.urlopen(request, urllib.quote(json.dumps(package)))
+            except urllib2.HTTPError as response:
+                response_text = response.read()
+                log.error(u'An exception occured while updating package: {0}'.format(package))
+                try:
+                    response_dict = json.loads(response_text)
+                except ValueError:
+                    log.error(response_text)
+                    raise
+                for key, value in response_dict.iteritems():
+                    log.debug('{} = {}'.format(key, value))
+                raise
+            else:
+                assert response.code == 200
+                response_dict = json.loads(response.read())
+                assert response_dict['success'] is True
+#                updated_package = response_dict['result']
+#                pprint.pprint(updated_package)
+    return package
 
 
 if __name__ == '__main__':

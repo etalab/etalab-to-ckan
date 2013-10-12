@@ -500,7 +500,7 @@ def main():
         description = organization_element.findtext('section[@class="detail"]/p')
         image_url = urlparse.urljoin('http://www.data.gouv.fr/',
             organization_element.find('section[@class="annexe"]/img').get('src'))
-        new_organization_by_name[strings.slugify(title[:100])] = dict(
+        new_organization_by_name[strings.slugify(title)[:100]] = dict(
             description = description,
             image_url = image_url,
             title = title,
@@ -528,7 +528,7 @@ def main():
             line = line.decode('utf-8')
             if u';;' in line:
                 if name is not None:
-                    new_organization_by_name[strings.slugify(name[:100])] = dict(
+                    new_organization_by_name[strings.slugify(name)[:100]] = dict(
                         description = description,
                         image_url = image_url,
                         )
@@ -540,7 +540,7 @@ def main():
             else:
                 description += u'\n' + line.rstrip()
         if name is not None:
-            new_organization_by_name[strings.slugify(name[:100])] = dict(
+            new_organization_by_name[strings.slugify(name)[:100]] = dict(
                 description = description,
                 image_url = image_url,
                 )
@@ -994,7 +994,7 @@ def set_package_extra(package, key, value):
 
 
 def upsert_group(description = None, image_url = None, title = None):
-    name = strings.slugify(title[:100])
+    name = strings.slugify(title)[:100]
     group = dict(
         name = name,
         title = title,
@@ -1077,7 +1077,7 @@ def upsert_group(description = None, image_url = None, title = None):
 
 
 def upsert_organization(description = None, image_url = None, title = None):
-    name = strings.slugify(title[:100])
+    name = strings.slugify(title)[:100]
     organization = new_organization_by_name.get(name)
     if organization is None:
         organization = dict(

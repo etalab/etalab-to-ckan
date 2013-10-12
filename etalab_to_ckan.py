@@ -737,13 +737,13 @@ def main():
         if period is not None:
             match = period_re.match(period)
             if match is not None:
-                set_package_extra(package, u'temporal_coverage_from',
-                    u'{}-{}-{}'.format(match.group('year_from'), match.group('month_from'), match.group('day_from')))
+                package['temporal_coverage_from'] = u'{}-{}-{}'.format(match.group('year_from'),
+                    match.group('month_from'), match.group('day_from'))
                 year_to = match.group('year_to')
                 if year_to == u'9999':
                     year_to = '2013'
-                set_package_extra(package, u'temporal_coverage_to',
-                    u'{}-{}-{}'.format(year_to, match.group('month_to'), match.group('day_to')))
+                package['temporal_coverage_to'] = u'{}-{}-{}'.format(year_to, match.group('month_to'),
+                    match.group('day_to'))
 
         territorial_coverage = entry.get(u'Territoires couverts')
         if territorial_coverage:
@@ -963,18 +963,18 @@ def main():
                     package = package_by_name.pop(package_name)
 
                     if repetition_type == 'school-year':
-                        assert get_package_extra(package, u'temporal_coverage_from', None) is not None, package
-                        assert get_package_extra(package, u'temporal_coverage_to', None) is not None, package
+                        assert package.get(u'temporal_coverage_from') is not None, package
+                        assert package.get(u'temporal_coverage_to') is not None, package
                     elif repetition_type == 'week':
-                        assert get_package_extra(package, u'temporal_coverage_from', None) is not None, package
-                        assert get_package_extra(package, u'temporal_coverage_to', None) is not None, package
+                        assert package.get(u'temporal_coverage_from') is not None, package
+                        assert package.get(u'temporal_coverage_to') is not None, package
                     elif repetition_type == 'year':
                         if vars.get('year'):
-                            set_package_extra(package, u'temporal_coverage_from', u'{}-01-01'.format(vars['year']))
-                            set_package_extra(package, u'temporal_coverage_to', u'{}-12-31'.format(vars['year']))
+                            package[u'temporal_coverage_from'] = u'{}-01-01'.format(vars['year'])
+                            package[u'temporal_coverage_to'] = u'{}-12-31'.format(vars['year'])
                         else:
-                            assert get_package_extra(package, u'temporal_coverage_from', None) is not None, package
-                            assert get_package_extra(package, u'temporal_coverage_to', None) is not None, package
+                            assert package.get(u'temporal_coverage_from') is not None, package
+                            assert package.get(u'temporal_coverage_to') is not None, package
                     else:
                         assert repetition_type is None, repetition_type
 
@@ -993,12 +993,12 @@ def main():
                             package_by_name[merged_package_name] = merged_package
                         else:
                             if repetition_type is not None:
-                                set_package_extra(merged_package, u'temporal_coverage_from', min(
-                                    get_package_extra(merged_package, u'temporal_coverage_from'),
-                                    get_package_extra(package, u'temporal_coverage_from')))
-                                set_package_extra(merged_package, u'temporal_coverage_to', max(
-                                    get_package_extra(merged_package, u'temporal_coverage_to'),
-                                    get_package_extra(package, u'temporal_coverage_to')))
+                                merged_package[u'temporal_coverage_from'] = min(
+                                    merged_package[u'temporal_coverage_from'],
+                                    package[u'temporal_coverage_from'])
+                                merged_package[u'temporal_coverage_to'] = max(
+                                    merged_package[u'temporal_coverage_to'],
+                                    package[u'temporal_coverage_to'])
                             merged_package['resources'].extend(package['resources'])
                         merged_first_resource_name = package['resources'][0]['name']
                     else:

@@ -1322,6 +1322,14 @@ def upsert_package(name, package):
             package['id'] = existing_package['id']
             package['state'] = 'active'
 
+            # Keep existing groups when they already exist.
+            existing_groups = [
+                dict(id = existing_group['id'])
+                for existing_group in (existing_package.get('groups') or [])
+                ]
+            if existing_groups:
+                package['groups'] = existing_groups
+
             request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
                 'api/3/action/package_update?id={}'.format(name)), headers = ckan_headers)
             try:

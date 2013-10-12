@@ -114,6 +114,8 @@ group_name_by_organization_name = {}
 grouped_packages = {}
 html_parser = etree.HTMLParser()
 license_id_by_title = {
+    u'Licence CC-BY 3.0': u'cc-by',
+    u'Licence CC-BY-SA 2.0': u'cc-by-sa',
     u'Licence Ouverte/Open Licence': u'fr-lo',
     }
 organization_group_line_re = re.compile(ur'(?P<organization>.+)\s+\d+\s+(?P<group>.+)$')

@@ -788,47 +788,6 @@ def main():
 
 #            elif organization_title == u"Ministère de l'Economie et des Finances":
 #                if service_title == u"Études statistiques en matière fiscale":
-#                    match = re.match(ur'(?i)Impôt sur le revenu (?P<year>\d{4}) (?P<department>.+)$', package_title)
-#                    if match is not None:
-#                        package['title'] = package_title = u"Impôt sur le revenu"
-#                        package['name'] = package_name = u'{}-{}'.format(
-#                            strings.slugify(package_title)[:100 - len(etalab_id_str) - 1], etalab_id_str)
-#                        set_package_extra(package, u'temporal_coverage_from', u'{}-01-01'.format(match.group('year')))
-#                        set_package_extra(package, u'temporal_coverage_to', u'{}-12-31'.format(match.group('year')))
-#                        set_package_extra(package, u'territorial_coverage', u'Country/FR')
-#                        set_package_extra(package, u'territorial_coverage_granularity', u'commune')
-
-#                        assert len(package['resources']) == 1, package
-#                        resource = package['resources'][0]
-#                        original_resource_name = resource['name']
-#                        resource['description'] = package.pop('notes', None)
-#                        resource['name'] = u"Impôt sur le revenu {} {}".format(match.group('year'),
-#                            match.group('department').upper())
-
-#                        if package_name in package_by_name:
-#                            package2 = package
-#                            package = package_by_name[package_name]
-#                            set_package_extra(package, u'temporal_coverage_from', min(
-#                                get_package_extra(package, u'temporal_coverage_from'),
-#                                get_package_extra(package2, u'temporal_coverage_from')))
-#                            set_package_extra(package, u'temporal_coverage_to', max(
-#                                get_package_extra(package, u'temporal_coverage_to'),
-#                                get_package_extra(package2, u'temporal_coverage_to')))
-#                            package['resources'].append(resource)
-#                            package['resources'].sort(key = lambda resource: resource['name'])
-#                        else:
-#                            package_by_name[package_name] = package
-
-#                        packages_merge.append((
-#                            organization_title,
-#                            service_title,
-#                            original_package_title,
-#                            original_resource_name,
-#                            package_title,
-#                            resource['name'],
-#                            ))
-#                        continue
-
 #                    match = re.match(ur'(?i)REI (?P<year>\d{4}) (?P<department>.+)$', package_title)
 #                    if match is not None:
 #                        package['title'] = package_title = u"Recensement des éléments d'imposition à la fiscalité directe locale (REI)"
@@ -844,83 +803,8 @@ def main():
 #- Taxe pour Chambre d'agriculture ou CAAA
 #- Taxe d'enlèvement des ordures ménagères
 #'''
-#                        set_package_extra(package, u'temporal_coverage_from', u'{}-01-01'.format(match.group('year')))
-#                        set_package_extra(package, u'temporal_coverage_to', u'{}-12-31'.format(match.group('year')))
-#                        set_package_extra(package, u'territorial_coverage', u'Country/FR')
-#                        set_package_extra(package, u'territorial_coverage_granularity', u'commune')
-
-#                        assert len(package['resources']) == 1, package
-#                        resource = package['resources'][0]
-#                        original_resource_name = resource['name']
-#                        # resource['description'] = package.pop('notes', None)
-#                        resource['name'] = u"REI {} {}".format(match.group('year'), match.group('department').upper())
-
-#                        if package_name in package_by_name:
-#                            package2 = package
-#                            package = package_by_name[package_name]
-#                            set_package_extra(package, u'temporal_coverage_from', min(
-#                                get_package_extra(package, u'temporal_coverage_from'),
-#                                get_package_extra(package2, u'temporal_coverage_from')))
-#                            set_package_extra(package, u'temporal_coverage_to', max(
-#                                get_package_extra(package, u'temporal_coverage_to'),
-#                                get_package_extra(package2, u'temporal_coverage_to')))
-#                            package['resources'].append(resource)
-#                            package['resources'].sort(key = lambda resource: resource['name'])
-#                        else:
-#                            package_by_name[package_name] = package
-
-#                        packages_merge.append((
-#                            organization_title,
-#                            service_title,
-#                            original_package_title,
-#                            original_resource_name,
-#                            package_title,
-#                            resource['name'],
-#                            ))
-#                        continue
-
-#                    match = re.match(
-#                        ur'(?i)Taux de fiscalité directe locale et délibérations (?P<year>\d{4}) (?P<department>.+)$',
-#                        package_title)
-#                    if match is not None:
-#                        package['title'] = package_title = u"Taux de fiscalité directe locale et délibérations"
-#                        package['name'] = package_name = u'{}-{}'.format(
-#                            strings.slugify(package_title)[:100 - len(etalab_id_str) - 1], etalab_id_str)
-#                        set_package_extra(package, u'temporal_coverage_from', u'{}-01-01'.format(match.group('year')))
-#                        set_package_extra(package, u'temporal_coverage_to', u'{}-12-31'.format(match.group('year')))
-#                        set_package_extra(package, u'territorial_coverage', u'Country/FR')
-#                        set_package_extra(package, u'territorial_coverage_granularity', u'commune')
-
-#                        assert len(package['resources']) == 1, package
-#                        resource = package['resources'][0]
-#                        original_resource_name = resource['name']
-#                        # resource['description'] = package.pop('notes', None)
-#                        resource['name'] = u"Taux de fiscalité directe locale et délibérations {} {}".format(
-#                            match.group('year'), match.group('department').upper())
-
-#                        if package_name in package_by_name:
-#                            package2 = package
-#                            package = package_by_name[package_name]
-#                            set_package_extra(package, u'temporal_coverage_from', min(
-#                                get_package_extra(package, u'temporal_coverage_from'),
-#                                get_package_extra(package2, u'temporal_coverage_from')))
-#                            set_package_extra(package, u'temporal_coverage_to', max(
-#                                get_package_extra(package, u'temporal_coverage_to'),
-#                                get_package_extra(package2, u'temporal_coverage_to')))
-#                            package['resources'].append(resource)
-#                            package['resources'].sort(key = lambda resource: resource['name'])
-#                        else:
-#                            package_by_name[package_name] = package
-
-#                        packages_merge.append((
-#                            organization_title,
-#                            service_title,
-#                            original_package_title,
-#                            original_resource_name,
-#                            package_title,
-#                            resource['name'],
-#                            ))
-#                        continue
+#                        package[u'temporal_coverage_from'] = u'{}-01-01'.format(match.group('year'))
+#                        package[u'temporal_coverage_to'] = u'{}-12-31'.format(match.group('year'))
 
     log.info(u'Merging datasets')
     for organization_title, organization_grouped_packages in grouped_packages.iteritems():

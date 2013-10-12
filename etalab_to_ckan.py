@@ -640,6 +640,9 @@ def main():
         organization_id = organization_id_by_name.get(organization_name, UnboundLocalError)
         if organization_id is UnboundLocalError:
             organization_id = upsert_organization(title = organization_title)
+        frequency = entry.get(u'Fréquence de mise à jour')
+        if frequency is not None:
+            frequency = frequency.lower()
         license_id = conv.check(conv.pipe(
             conv.test_in(license_id_by_title),
             conv.translate(license_id_by_title)
@@ -699,7 +702,9 @@ def main():
             author = service_title or u'',  # TODO
 #                author_email = u'',
             extras = extras,
-            frequency = entry.get(u'Fréquence de mise à jour'),
+            frequency = {
+                u'journalier': u"quotidienne",
+                }.get(frequency, frequency),
             # groups is added below.
             license_id = license_id,
             maintainer = u'',

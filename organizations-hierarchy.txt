@@ -1,112 +1,152 @@
-Ministère des Affaires Etrangères;;;;
-Conseil général du Loir et Cher;;Conseil général de Loir-et-Cher;;
+Caisse nationale de solidarité pour l'autonomie;;;;
 Conseil général de Loir-et-Cher;;;;
-Ministère de l'Education Nationale;;;;
-Ministère de la Justice;;;;
-Ministère de l'Economie et des Finances;;;;
-Ministère des Affaires sociales et de la Santé;;;;
-Ministère de l'Egalité des Territoires et du Logement;;;;
-Ministère de l'Intérieur;;;;
-Ministère du Commerce extérieur;;;;
-Ministère du Redressement productif;;;;
-Ministère de la Défense;;;;
-Ministère de l'Ecologie du Développement Durable et de l'Energie;;;;
-Ministère du travail, de l'emploi, de la formation professionnelle et du dialogue social;;;;
-Ministère de l'Enseignement supérieur et de la Recherche;;;;
+Conseil général du Loir et Cher;;Conseil général de Loir-et-Cher;;
+Institut géographique national;;Institut National de l'Information Géographique et Forestière;;
 Institut National de la Statistique et des Etudes Economiques (INSEE);;;;
-Ministère de la Culture et de la Communication;;;;
-Ministère de la Réforme de l'Etat, de la décentralisation et de la Fonction publique;;;;
-Ministère des Sports, de la Jeunesse, de l'Education populaire et de la vie associative;;;;
 Institut National de l'Information Géographique et Forestière;;;;
-Régie autonome des transports parisiens (RATP);;;;
-Ministère de la Justice et des Libertés;;Ministère de la Justice;;
-Ministère de la Justice et des Libertés, Sous-direction de la statistique et des études;;Ministère de la Justice;;Sous-direction de la statistique et des études
-Ministère de l'Intérieur, de l'Outre-mer, des Collectivités territoriales et de l'Immigration;;Ministère de l'Intérieur;;
-Ministère de l'Intérieur, de l'Outre-mer, des Collectivités territoriales et de l'Immigration, Direction des libertés publiques et des affaires juridiques;;Ministère de l'Intérieur;;Direction des libertés publiques et des affaires juridiques
-Ministère de l'Intérieur, de l'Outre-mer, des Collectivités territoriales et de l'Immigration, Direction générale des collectivités locales;;Ministère de l'Intérieur;;Direction générale des collectivités locales
-Ministère de l'Intérieur, de l'Outre-mer, des Collectivités territoriales et de l'Immigration, Secrétariat général du ministère de l'Intérieur;;Ministère de l'Intérieur;;Secrétariat général du ministère de l'Intérieur
-Ministère de l'Intérieur, de l'Outre-mer, des Collectivités territoriales et de l'Immigration, Bureau des élections et études politiques;;Ministère de l'Intérieur;;Bureau des élections et études politiques
-Ministère de l'Agriculture, de l'Agroalimentaire et de la Forêt;;;;
-Ministère de l'artisanat, du commerce et du tourisme;;;;
-Ministère du Budget, des Comptes publics et de la Réforme de l'Etat, Direction du budget;;Ministère de l'Economie et des Finances;;Ministère du Budget, des Comptes publics et de la Réforme de l'Etat, Direction du budget
-Ministère de l'Ecologie, du Développement durable, des Transports et du Logement;;Ministère de l'Ecologie du Développement Durable et de l'Energie;;
-Ministère du Travail, de l'Emploi et de la Santé;; Ministère du travail, de l'emploi, de la formation professionnelle et du dialogue social;;
-Ministère de l'Education nationale, de la Jeunesse et de la Vie associative;;Ministère de l'Education Nationale;;
-Premier Ministre, Direction de l'information légale et administrative;;Premier Ministre;;Direction de l'information légale et administrative
-Ministère de l'Education nationale, de la Jeunesse et de la Vie associative, Direction de l'évaluation, la prospective et la performance;;Ministère de l'Education Nationale;;Direction de l'évaluation, la prospective et la performance
-Ministère des Affaires Etrangères et Européennes, Direction générale de l'administration et de la modernisation;;Ministère des Affaires Etrangères;;Direction générale de l'administration et de la modernisation
-Ministère du Budget, des Comptes publics et de la Réforme de l'Etat, Direction générale des douanes et droits indirects;;Ministère de l'Economie et des Finances;;Direction générale des douanes et droits indirects
-Ministère des Sports;;Ministère des Sports, de la Jeunesse, de l'Education populaire et de la vie associative;;
-Ministère des Affaires Etrangères et Européennes;;Ministère des Affaires Etrangères;;
-Premier Ministre, Secrétariat général du Gouvernement;;Premier Ministre;;Secrétariat général du Gouvernement
-Ministère de l'Economie, des Finances et de l'Industrie, Service des affaires multilatérales et du développement;;Ministère de l'Economie et des Finances;;Service des affaires multilatérales et du développement
-Ministère de l'Economie, des Finances et de l'Industrie, Institut national de la statistique et des études économiques (INSEE);; Institut National de la Statistique et des Etudes Economiques (INSEE);;
-Ministère de l'Economie, des Finances et de l'Industrie, Agence des participations de l'État;;Ministère de l'Economie et des Finances;;Agence des participations de l'État
-Ministère de l'Intérieur, de l'Outre-mer, des Collectivités territoriales et de l'Immigration, Préfecture de police de Paris;;Ministère de l'Intérieur;;Préfecture de police de Paris
-Ministère de la Culture et de la Communication, Département des études, de la prospective et des statistiques;;Ministère de la Culture et de la Communication;;Département des études, de la prospective et des statistiques
-Ministère de l'Ecologie, du Développement durable, des Transports et du Logement, Direction générale de l'aménagement, du logement et de la nature;;Ministère de l'Ecologie du Développement Durable et de l'Energie;;Direction générale de l'aménagement, du logement et de la nature
-Ministère de l'Ecologie, du Développement durable, des Transports et du Logement, Direction générale des infrastructures, des transports et de la mer;;Ministère de l'Ecologie du Développement Durable et de l'Energie;;Direction générale des infrastructures, des transports et de la mer
-Ministère de l'Ecologie, du Développement durable, des Transports et du Logement, Direction générale de l'aviation civile;;Ministère de l'Ecologie du Développement Durable et de l'Energie;;Direction générale de l'aviation civile
-Ministère de l'Intérieur, de l'Outre-mer, des Collectivités territoriales et de l'Immigration, Direction de la modernisation et de l'action territoriale;;Ministère de l'Intérieur;;Direction de la modernisation et de l'action territoriale
+Institut national des hautes études de la sécurité et de la justice;;;;
+Institut national des hautes études de la sécurité et de la justice, Département Observatoire national de la délinquance et des réponses pénales;;Institut national des hautes études de la sécurité et de la justice;;Département Observatoire national de la délinquance et des réponses pénales
+Ministère de la Culture et de la Communication;;;;
+Ministère de la Culture et de la Communication, Archives nationales;;Ministère de la Culture et de la Communication;;Archives nationales
+Ministère de la Culture et de la Communication, Bureau de l'observation, de la performance et du contrôle de gestion;;Ministère de la Culture et de la Communication;;Bureau de l'observation, de la performance et du contrôle de gestion
+Ministère de la Culture et de la Communication, Délégation à l'information et à la communication;;Ministère de la Culture et de la Communication;;Délégation à l'information et à la communication
+Ministère de la Culture et de la Communication, Délégation générale à la langue française et aux langues de France;;Ministère de la Culture et de la Communication;;Délégation générale à la langue française et aux langues de France
+Ministère de la Culture et de la Communication, Département de la politique des publics;;Ministère de la Culture et de la Communication;;Département de la politique des publics
 Ministère de la Culture et de la Communication, Département de l'enseignement supérieur, de la recherche et de la technologie;;Ministère de la Culture et de la Communication;;Département de l'enseignement supérieur, de la recherche et de la technologie
-Ministère de la Défense et des Anciens combattants;;Ministère de la Défense;;
+Ministère de la Culture et de la Communication, Département de l'information et de la communication;;Ministère de la Culture et de la Communication;;Département de l'information et de la communication
+Ministère de la Culture et de la Communication, Département des études, de la prospective et des statistiques;;Ministère de la Culture et de la Communication;;Département des études, de la prospective et des statistiques
+Ministère de la Culture et de la Communication, Département des programmes numériques;;Ministère de la Culture et de la Communication;;Département des programmes numériques
+Ministère de la Culture et de la Communication, Direction générale des médias et des industries culturelles;;Ministère de la Culture et de la Communication;;Direction générale des médias et des industries culturelles
+Ministère de la Culture et de la Communication, Direction générale des patrimoines;;Ministère de la Culture et de la Communication;;Direction générale des patrimoines
+Ministère de la Culture et de la Communication, Médiathèque de l'architecture et du patrimoine;;Ministère de la Culture et de la Communication;;Médiathèque de l'architecture et du patrimoine
+Ministère de la Culture et de la Communication, Mission de la communication interne;;Ministère de la Culture et de la Communication;;Mission de la communication interne
+Ministère de la Culture et de la Communication, Service du livre et de la lecture;;Ministère de la Culture et de la Communication;;Service du livre et de la lecture
+Ministère de la Culture et de la Communication, Sous-direction des affaires financières;;Ministère de la Culture et de la Communication;;Sous-direction des affaires financières
+Ministère de la Défense;;;;
+Ministère de la Défense, Caisse nationale militaire de sécurité sociale;;Ministère de la Défense;;Caisse nationale militaire de sécurité sociale
+Ministère de la Défense, Direction des ressources humaines du ministère de la Défense;;Ministère de la Défense;;Direction des ressources humaines du ministère de la Défense
+Ministère de la Défense et des Anciens combattants, Bureau de la politique des archives et des bibliothèques;;Ministère de la Défense;;Bureau de la politique des archives et des bibliothèques
+Ministère de la Défense et des Anciens combattants, Bureau des actions culturelles et des musées;;Ministère de la Défense;;Bureau des actions culturelles et des musées
 Ministère de la Défense et des Anciens combattants, Caisse nationale militaire de sécurité sociale;;Ministère de la Défense;;Caisse nationale militaire de sécurité sociale
 Ministère de la Défense et des Anciens combattants, Direction des ressources humaines du ministère de la Défense;;Ministère de la Défense;;Direction des ressources humaines du ministère de la Défense
-Ministère de la Culture et de la Communication, Direction générale des patrimoines;;Ministère de la Culture et de la Communication;;Direction générale des patrimoines
-Ministère de la Culture et de la Communication, Bureau de l'observation, de la performance et du contrôle de gestion;;Ministère de la Culture et de la Communication;;Bureau de l'observation, de la performance et du contrôle de gestion
-Ministère de l'Intérieur, de l'Outre-mer, des Collectivités territoriales et de l'Immigration, Bureau des services d'incendie et de secours;;Ministère de l'Intérieur;;Bureau des services d'incendie et de secours
-Premier Ministre, Secrétariat général;;Premier Ministre;;Secrétariat général
-Ministère de la Culture et de la Communication, Direction générale des médias et des industries culturelles;;Ministère de la Culture et de la Communication;;Direction générale des médias et des industries culturelles
-Ministère de l'Economie, des Finances et de l'Industrie, Direction générale de la compétitivité, de l'industrie et des services;;Ministère de l'Economie et des Finances;;Direction générale de la compétitivité, de l'industrie et des services
-Ministère de l'Agriculture, de l'Alimentation, de la Pèche, de la Ruralité et de l'Aménagement du territoire;;Ministère de l'Agriculture, de l'Agroalimentaire et de la Forêt;;
-Ministère de l'Agriculture, de l'Alimentation, de la Pèche, de la Ruralité et de l'Aménagement du territoire, Service de la statistique et de la prospective;;Ministère de l'Agriculture, de l'Agroalimentaire et de la Forêt;;Service de la statistique et de la prospective
-Ministère de l'Agriculture, de l'Alimentation, de la Pèche, de la Ruralité et de l'Aménagement du territoire, Mission de la stratégie et des systèmes d'information;;Ministère de l'Agriculture, de l'Agroalimentaire et de la Forêt;;Mission de la stratégie et des systèmes d'information
-Ministère de l'Agriculture, de l'Alimentation, de la Pèche, de la Ruralité et de l'Aménagement du territoire, Inventaire forestier national;;Institut National de l'Information Géographique et Forestière;;
+Ministère de la Défense et des Anciens combattants, Direction du service national;;Ministère de la Défense;;Direction du service national
+Ministère de la Défense et des Anciens combattants;;Ministère de la Défense;;
+Ministère de la Défense et des Anciens combattants, Observatoire économique de la défense;;Ministère de la Défense;;Observatoire économique de la défense
+Ministère de la Défense et des Anciens combattants, SIRPA Air;;Ministère de la Défense;;SIRPA Air
+Ministère de la Défense et des Anciens combattants, SIRPA Terre;;Ministère de la Défense;;SIRPA Terre
+Ministère de la Défense, Observatoire économique de la défense;;Ministère de la Défense;;Observatoire économique de la défense
+Ministère de la Défense, Service d'information et de relations publiques de l'armée de l'air - SIRPA Air;;Ministère de la Défense;;Service d'information et de relations publiques de l'armée de l'air - SIRPA Air
+Ministère de la Défense, Service d'information et de relations publiques de l'armée de terre - SIRPA Terre;;Ministère de la Défense;;Service d'information et de relations publiques de l'armée de terre - SIRPA Terre
+Ministère de l'Agriculture, de l'Agroalimentaire et de la Forêt;;;;
+Ministère de l'Agriculture, de l'Agroalimentaire et de la Forêt, Direction générale de l'enseignement et de la recherche;;Ministère de l'Agriculture, de l'Agroalimentaire et de la Forêt;;Direction générale de l'enseignement et de la recherche
+Ministère de l'Agriculture, de l'Agroalimentaire et de la Forêt, Mission de la stratégie et des systèmes d'information;;Ministère de l'Agriculture, de l'Agroalimentaire et de la Forêt;;Mission de la stratégie et des systèmes d'information
+Ministère de l'Agriculture, de l'Agroalimentaire et de la Forêt, Service de la statistique et de la prospective;;Ministère de l'Agriculture, de l'Agroalimentaire et de la Forêt;;Service de la statistique et de la prospective
 Ministère de l'Agriculture, de l'Alimentation, de la Pèche, de la Ruralité et de l'Aménagement du territoire, Direction générale de l'alimentation;;Ministère de l'Agriculture, de l'Agroalimentaire et de la Forêt;;Direction générale de l'alimentation
 Ministère de l'Agriculture, de l'Alimentation, de la Pèche, de la Ruralité et de l'Aménagement du territoire, Direction générale de l'enseignement et de la recherche;;Ministère de l'Agriculture, de l'Agroalimentaire et de la Forêt;;Direction générale de l'enseignement et de la recherche
 Ministère de l'Agriculture, de l'Alimentation, de la Pèche, de la Ruralité et de l'Aménagement du territoire, Direction générale des politiques agricole, agroalimentaire et des territoires;;Ministère de l'Agriculture, de l'Agroalimentaire et de la Forêt;;Direction générale des politiques agricole, agroalimentaire et des territoires
-Ministère de l'Economie, des Finances et de l'Industrie, Direction générale du Trésor;;Ministère de l'Economie et des Finances;;Direction générale du Trésor
-Ministère de la Défense et des Anciens combattants, Observatoire économique de la défense;;Ministère de la Défense;;Observatoire économique de la défense
-Ministère de la Défense et des Anciens combattants, SIRPA Terre;;Ministère de la Défense;;SIRPA Terre
+Ministère de l'Agriculture, de l'Alimentation, de la Pèche, de la Ruralité et de l'Aménagement du territoire, Inventaire forestier national;;Institut National de l'Information Géographique et Forestière;;Inventaire forestier national
+Ministère de l'Agriculture, de l'Alimentation, de la Pèche, de la Ruralité et de l'Aménagement du territoire;;Ministère de l'Agriculture, de l'Agroalimentaire et de la Forêt;;
+Ministère de l'Agriculture, de l'Alimentation, de la Pèche, de la Ruralité et de l'Aménagement du territoire, Mission de la stratégie et des systèmes d'information;;Ministère de l'Agriculture, de l'Agroalimentaire et de la Forêt;;Mission de la stratégie et des systèmes d'information
+Ministère de l'Agriculture, de l'Alimentation, de la Pèche, de la Ruralité et de l'Aménagement du territoire, Service de la statistique et de la prospective;;Ministère de l'Agriculture, de l'Agroalimentaire et de la Forêt;;Service de la statistique et de la prospective
+Ministère de la Justice;;;;
+Ministère de la Justice, Direction de l'administration pénitentiaire;;Ministère de la Justice;;Direction de l'administration pénitentiaire
 Ministère de la Justice et des Libertés, Direction de l'administration pénitentiaire;;Ministère de la Justice;;Direction de l'administration pénitentiaire
-Institut géographique national;;Institut National de l'Information Géographique et Forestière;;
-Ministère de l'Education nationale, de la Jeunesse et de la Vie associative, Bureau de presse;;Ministère de l'Education Nationale;;Bureau de presse
+Ministère de la Justice et des Libertés;;Ministère de la Justice;;
+Ministère de la Justice et des Libertés, Sous-direction de la statistique et des études;;Ministère de la Justice;;Sous-direction de la statistique et des études
+Ministère de la Réforme de l'Etat, de la décentralisation et de la Fonction publique;;;;
+Ministère de l'artisanat, du commerce et du tourisme;;;;
+Ministère de la Ville, Secrétariat général du Comité interministériel des villes;;Ministère de l'Egalité des Territoires et du Logement;;Secrétariat général du Comité interministériel des villes
+Ministère de l'Ecologie, du Développement durable, des Transports et du Logement, Centre d'études sur les réseaux, les transports, l'urbanisme et les constructions publiques;;Ministère de l'Ecologie du Développement Durable et de l'Energie;;Centre d'études sur les réseaux, les transports, l'urbanisme et les constructions publiques
+Ministère de l'Ecologie, du Développement durable, des Transports et du Logement, Direction de l'eau et de la biodiversité;;Ministère de l'Ecologie du Développement Durable et de l'Energie;;Direction de l'eau et de la biodiversité
+Ministère de l'Ecologie, du Développement durable, des Transports et du Logement, Direction générale de l'aménagement, du logement et de la nature;;Ministère de l'Ecologie du Développement Durable et de l'Energie;;Direction générale de l'aménagement, du logement et de la nature
+Ministère de l'Ecologie, du Développement durable, des Transports et du Logement, Direction générale de l'aviation civile;;Ministère de l'Ecologie du Développement Durable et de l'Energie;;Direction générale de l'aviation civile
+Ministère de l'Ecologie, du Développement durable, des Transports et du Logement, Direction générale des infrastructures, des transports et de la mer;;Ministère de l'Ecologie du Développement Durable et de l'Energie;;Direction générale des infrastructures, des transports et de la mer
+Ministère de l'Ecologie, du Développement durable, des Transports et du Logement;;Ministère de l'Ecologie du Développement Durable et de l'Energie;;
+Ministère de l'Ecologie du Développement Durable et de l'Energie;;;;
+Ministère de l'Écologie, du Développement durable et de l'Énergie, Agence française pour l'information multimodale et la billettique;;Ministère de l'Écologie, du Développement durable et de l'Énergie;;Agence française pour l'information multimodale et la billettique
+Ministère de l'Economie, des Finances et de l'Industrie, Agence des participations de l'État;;Ministère de l'Économie et des Finances;;Agence des participations de l'État
+Ministère de l'Economie, des Finances et de l'Industrie, Bureau de la veille économique et des prix;;Ministère de l'Économie et des Finances;;Bureau de la veille économique et des prix
+Ministère de l'Economie, des Finances et de l'Industrie, Direction générale de la compétitivité, de l'industrie et des services;;Ministère de l'Économie et des Finances;;Direction générale de la compétitivité, de l'industrie et des services
+Ministère de l'Economie, des Finances et de l'Industrie, Direction générale de la concurrence, de la consommation et de la répression des fraudes;;Ministère de l'Économie et des Finances;;Direction générale de la concurrence, de la consommation et de la répression des fraudes
+Ministère de l'Economie, des Finances et de l'Industrie, Direction générale du Trésor;;Ministère de l'Économie et des Finances;;Direction générale du Trésor
+Ministère de l'Economie, des Finances et de l'Industrie, Inspection générale des finances;;Ministère de l'Économie et des Finances;;Inspection générale des finances
+Ministère de l'Economie, des Finances et de l'Industrie, Institut national de la statistique et des études économiques (INSEE);; Institut National de la Statistique et des Etudes Economiques (INSEE);;
+Ministère de l'Economie, des Finances et de l'Industrie;;Ministère de l'Économie et des Finances;;
+Ministère de l'Economie, des Finances et de l'Industrie, Service des affaires multilatérales et du développement;;Ministère de l'Économie et des Finances;;Service des affaires multilatérales et du développement
+Ministère de l'Économie et des Finances, Bureau CL 2A. Conseil fiscal et valorisation financière du secteur public local;;Ministère de l'Économie et des Finances;;Bureau CL 2A. Conseil fiscal et valorisation financière du secteur public local
+Ministère de l'Économie et des Finances, Bureau de la veille économique et des prix - Bureau 1B;;Ministère de l'Économie et des Finances;;Bureau de la veille économique et des prix - Bureau 1B
+Ministère de l'Économie et des Finances, Direction du budget;;Ministère de l'Économie et des Finances;;Direction du budget
+Ministère de l'Économie et des Finances, Direction générale du Trésor;;Ministère de l'Économie et des Finances;;Direction générale du Trésor
+Ministère de l'Économie et des Finances, Inspection générale des finances;;Ministère de l'Économie et des Finances;;Inspection générale des finances
+Ministère de l'Économie et des Finances, Institut national de la statistique et des études économiques - Direction générale;;Institut National de la Statistique et des Etudes Economiques (INSEE);;Direction générale
+Ministère de l'Economie et des Finances;;Ministère de l'Économie et des Finances;;
+Ministère de l'Économie et des Finances, Service des achats de l'État;;Ministère de l'Économie et des Finances;;Service des achats de l'État
+Ministère de l'Économie et des Finances, Service des affaires multilatérales et du développement;;Ministère de l'Économie et des Finances;;Service des affaires multilatérales et du développement
+Ministère de l'Économie et des Finances, Service France Domaine;;Ministère de l'Économie et des Finances;;Service France Domaine
+Ministère de l'Éducation nationale, Bureau de presse;;Ministère de l'Éducation nationale;;Bureau de presse
+Ministère de l'Education nationale, de la Jeunesse et de la Vie associative, Bureau de presse;;Ministère de l'Éducation nationale;;Bureau de presse
+Ministère de l'Education nationale, de la Jeunesse et de la Vie associative, Direction de l'évaluation, la prospective et la performance;;Ministère de l'Éducation nationale;;Direction de l'évaluation, la prospective et la performance
+Ministère de l'Education nationale, de la Jeunesse et de la Vie associative;;Ministère de l'Éducation nationale;;
+Ministère de l'Éducation nationale, Direction de l'évaluation, la prospective et la performance;;Ministère de l'Éducation nationale;;Direction de l'évaluation, la prospective et la performance
+Ministère de l'Education Nationale;;Ministère de l'Éducation nationale;;
+Ministère de l'Egalité des Territoires et du Logement;;;;
+Ministère de l'Enseignement supérieur et de la Recherche;;;;
+Ministère de l'Enseignement supérieur et de la Recherche, Département des outils d'aide au pilotage;;Ministère de l'Enseignement supérieur et de la Recherche;;Département des outils d'aide au pilotage
+Ministère de l'Intérieur;;;;
+Ministère de l'Intérieur, Bureau des élections et études politiques;;Ministère de l'Intérieur;;Bureau des élections et études politiques
+Ministère de l'Intérieur, de l'Outre-mer, des Collectivités territoriales et de l'Immigration, Bureau des élections et études politiques;;Ministère de l'Intérieur;;Bureau des élections et études politiques
+Ministère de l'Intérieur, de l'Outre-mer, des Collectivités territoriales et de l'Immigration, Bureau des services d'incendie et de secours;;Ministère de l'Intérieur;;Bureau des services d'incendie et de secours
+Ministère de l'Intérieur, de l'Outre-mer, des Collectivités territoriales et de l'Immigration, Direction de la modernisation et de l'action territoriale;;Ministère de l'Intérieur;;Direction de la modernisation et de l'action territoriale
+Ministère de l'Intérieur, de l'Outre-mer, des Collectivités territoriales et de l'Immigration, Direction des libertés publiques et des affaires juridiques;;Ministère de l'Intérieur;;Direction des libertés publiques et des affaires juridiques
+Ministère de l'Intérieur, de l'Outre-mer, des Collectivités territoriales et de l'Immigration, Direction générale des collectivités locales;;Ministère de l'Intérieur;;Direction générale des collectivités locales
+Ministère de l'Intérieur, de l'Outre-mer, des Collectivités territoriales et de l'Immigration;;Ministère de l'Intérieur;;
+Ministère de l'Intérieur, de l'Outre-mer, des Collectivités territoriales et de l'Immigration, Préfecture de police de Paris;;Ministère de l'Intérieur;;Préfecture de police de Paris
 Ministère de l'Intérieur, de l'Outre-mer, des Collectivités territoriales et de l'Immigration, Secrétariat général à l'immigration et à l'intégration;;Ministère de l'Intérieur;;Secrétariat général à l'immigration et à l'intégration
-Régie autonome des transports parisien (RATP);; Régie autonome des transports parisiens (RATP);;
-Ministère de la Culture et de la Communication, Département de l'information et de la communication;;Ministère de la Culture et de la Communication;;Département de l'information et de la communication
-Ministère de l'Economie, des Finances et de l'Industrie;;Ministère de l'Economie et des Finances;;
-Ministère du Budget, des Comptes publics et de la Réforme de l'Etat, Bureau CL 2A. Conseil fiscal et valorisation financière du secteur public local;;Ministère de l'Economie et des Finances;;Conseil fiscal et valorisation financière du secteur public local
-Ministère de l'Economie, des Finances et de l'Industrie, Bureau de la veille économique et des prix;;Ministère de l'Economie et des Finances;;Bureau de la veille économique et des prix
-Ministère de la Culture et de la Communication, Médiathèque de l'architecture et du patrimoine;;Ministère de la Culture et de la Communication;;Médiathèque de l'architecture et du patrimoine
-Ministère de la Culture et de la Communication, Département des programmes numériques;;Ministère de la Culture et de la Communication;;Département des programmes numériques
-Premier Ministre, Secrétariat général pour la modernisation de l'action publique (SGMAP);;Premier Ministre;;Secrétariat général pour la modernisation de l'action publique (SGMAP)
-Ministère du Budget, des Comptes publics et de la Réforme de l'Etat, Service des achats de l'État;;Ministère de l'Economie et des Finances;;Service des achats de l'État
-Ministère de la Défense et des Anciens combattants, SIRPA Air;;Ministère de la Défense;;SIRPA Air
+Ministère de l'Intérieur, de l'Outre-mer, des Collectivités territoriales et de l'Immigration, Secrétariat général du ministère de l'Intérieur;;Ministère de l'Intérieur;;Secrétariat général du ministère de l'Intérieur
+Ministère de l'Intérieur, Direction générale des collectivités locales;;Ministère de l'Intérieur;;Direction générale des collectivités locales
+Ministère de l'Intérieur, Secrétariat général à l'immigration et à l'intégration;;Ministère de l'Intérieur;;Secrétariat général à l'immigration et à l'intégration
+Ministère de l'Intérieur, Secrétariat général du ministère de l'Intérieur;;Ministère de l'Intérieur;;Secrétariat général du ministère de l'Intérieur
+Ministère de l'Intérieur, Sous-direction des services d'incendie et des acteurs du secours;;Ministère de l'Intérieur;;Sous-direction des services d'incendie et des acteurs du secours
+Ministère des Affaires Etrangères;;;;
+Ministère des Affaires Etrangères et Européennes, Direction générale de l'administration et de la modernisation;;Ministère des Affaires Etrangères;;Direction générale de l'administration et de la modernisation
+Ministère des Affaires Etrangères et Européennes;;Ministère des Affaires Etrangères;;
+Ministère des Affaires sociales et de la Santé;;;;
+Ministère des Affaires sociales et de la Santé, Direction de la recherche, des études, de l'évaluation et des statistiques;;Ministère des Affaires sociales et de la Santé;;Direction de la recherche, des études, de l'évaluation et des statistiques
+Ministère des Affaires sociales et de la Santé, Direction générale de l'offre de soins;;Ministère des Affaires sociales et de la Santé;;Direction générale de l'offre de soins
+Ministère des Sports, de la Jeunesse, de l'Education populaire et de la vie associative;;;;
+Ministère des Sports, de la Jeunesse, de l'Éducation populaire et de la Vie associative, Direction de la jeunesse, de l'éducation populaire et de la vie associative;;Ministère des Sports, de la Jeunesse, de l'Éducation populaire et de la Vie associative;;Direction de la jeunesse, de l'éducation populaire et de la vie associative
+Ministère des Sports;;Ministère des Sports, de la Jeunesse, de l'Education populaire et de la vie associative;;
+Ministère du Budget, des Comptes publics et de la Réforme de l'Etat, 1e Sous-direction;;Ministère de l'Économie et des Finances;;Ministère du Budget, 1e Sous-direction
+Ministère du Budget, des Comptes publics et de la Réforme de l'Etat, Bureau CL 2A. Conseil fiscal et valorisation financière du secteur public local;;Ministère de l'Économie et des Finances;;Conseil fiscal et valorisation financière du secteur public local
+Ministère du Budget, des Comptes publics et de la Réforme de l'Etat, Bureau GF 3C. Études statistiques en matière fiscale;;Ministère de l'Économie et des Finances;;Études statistiques en matière fiscale
+Ministère du Budget, des Comptes publics et de la Réforme de l'Etat, Direction du budget;;Ministère de l'Économie et des Finances;;Direction du budget
+Ministère du Budget, des Comptes publics et de la Réforme de l'Etat, Direction générale de la modernisation de l'État;;Premier Ministre;;Secrétariat général pour la modernisation de l'action publique (SGMAP)
+Ministère du Budget, des Comptes publics et de la Réforme de l'Etat, Direction générale des douanes et droits indirects;;Ministère de l'Économie et des Finances;;Direction générale des douanes et droits indirects
+Ministère du Budget, des Comptes publics et de la Réforme de l'Etat, Service des achats de l'État;;Ministère de l'Économie et des Finances;;Service des achats de l'État
+Ministère du Budget, des Comptes publics et de la Réforme de l'Etat, Service France Domaine;;Ministère de l'Économie et des Finances;;Service France Domaine
+Ministère du Commerce extérieur;;;;
+Ministère du Redressement productif;;;;
+Ministère du Redressement productif, Direction générale de la compétitivité, de l'industrie et des services;;Ministère du Redressement productif;;Direction générale de la compétitivité, de l'industrie et des services
+Ministère du travail, de l'emploi, de la formation professionnelle et du dialogue social;;;;
+Ministère du Travail, de l'Emploi, de la Formation professionnelle et du Dialogue social, Direction de l'animation de la recherche, des études et des statistiques;;Ministère du Travail, de l'Emploi, de la Formation professionnelle et du Dialogue social;;Direction de l'animation de la recherche, des études et des statistiques
 Ministère du Travail, de l'Emploi et de la Santé, Direction de l'animation de la recherche, des études et des statistiques;; Ministère du travail, de l'emploi, de la formation professionnelle et du dialogue social;;Direction de l'animation de la recherche, des études et des statistiques
-Ministère de l'Economie, des Finances et de l'Industrie, Inspection générale des finances;;Ministère de l'Economie et des Finances;;Inspection générale des finances
-Ministère du Travail, de l'Emploi et de la Santé, Direction générale de l'offre de soins;;Ministère du travail, de l'emploi, de la formation professionnelle et du dialogue social;;Direction générale de l'offre de soins
 Ministère du Travail, de l'Emploi et de la Santé, Direction de la recherche, des études, de l'évaluation et des statistiques;;Ministère du travail, de l'emploi, de la formation professionnelle et du dialogue social;;Direction de la recherche, des études, de l'évaluation et des statistiques
 Ministère du Travail, de l'Emploi et de la Santé, Direction de la sécurité sociale;;Ministère du travail, de l'emploi, de la formation professionnelle et du dialogue social;;Direction de la sécurité sociale
-Ministère du Budget, des Comptes publics et de la Réforme de l'Etat, Bureau GF 3C. Études statistiques en matière fiscale;;Ministère de l'Economie et des Finances;;Études statistiques en matière fiscale
-Ministère de l'Economie, des Finances et de l'Industrie, Direction générale de la concurrence, de la consommation et de la répression des fraudes;;Ministère de l'Economie et des Finances;;Direction générale de la concurrence, de la consommation et de la répression des fraudes
-Ministère du Budget, des Comptes publics et de la Réforme de l'Etat, Service France Domaine;;Ministère de l'Economie et des Finances;;Service France Domaine
+Ministère du Travail, de l'Emploi et de la Santé, Direction générale de l'offre de soins;;Ministère du travail, de l'emploi, de la formation professionnelle et du dialogue social;;Direction générale de l'offre de soins
+Ministère du Travail, de l'Emploi et de la Santé;; Ministère du travail, de l'emploi, de la formation professionnelle et du dialogue social;;
 Premier ministre;;;;
-Ministère du Budget, des Comptes publics et de la Réforme de l'Etat, Direction générale de la modernisation de l'État;;Premier Ministre;;Secrétariat général pour la modernisation de l'action publique (SGMAP)
-Ministère de l'Ecologie, du Développement durable, des Transports et du Logement, Direction de l'eau et de la biodiversité;;Ministère de l'Ecologie du Développement Durable et de l'Energie;;Direction de l'eau et de la biodiversité
-Ministère du Budget, des Comptes publics et de la Réforme de l'Etat, 1e Sous-direction;;Ministère de l'Economie et des Finances;;Ministère du Budget, 1e Sous-direction
-Ministère de la Culture et de la Communication, Département de la politique des publics;;Ministère de la Culture et de la Communication;;Département de la politique des publics
-Ministère de la Culture et de la Communication, Service du livre et de la lecture;;Ministère de la Culture et de la Communication;;Service du livre et de la lecture
-Ministère de la Culture et de la Communication, Mission de la communication interne;;Ministère de la Culture et de la Communication;;Mission de la communication interne
-Ministère de la Culture et de la Communication, Sous-direction des affaires financières;;Ministère de la Culture et de la Communication;;Sous-direction des affaires financières
-Ministère de la Culture et de la Communication, Délégation générale à la langue française et aux langues de France;;Ministère de la Culture et de la Communication;;Délégation générale à la langue française et aux langues de France
-Premier Ministre, Délégation interministérielle à l'aménagement du territoire et à l'attractivité régionale;; Premier Ministre;;Délégation interministérielle à l'aménagement du territoire et à l'attractivité régionale
+Premier Ministre, Commissaire général à l'investissement;;Premier Ministre;;Commissariat général à l'investissement
+Premier Ministre, Commissariat général à l'investissement;;Premier Ministre;;Commissariat général à l'investissement
 Premier Ministre, Commission pour l'indemnisation des victimes de spoliations intervenues du fait des législations antisémites en vigueur pendant l'occupation;;Premier Ministre;;Commission pour l'indemnisation des victimes de spoliations intervenues du fait des législations antisémites en vigueur pendant l'occupation
-Ministère de la Défense et des Anciens combattants, Bureau des actions culturelles et des musées;;Ministère de la Défense;;Bureau des actions culturelles et des musées
-Ministère de la Défense et des Anciens combattants, Bureau de la politique des archives et des bibliothèques;;Ministère de la Défense;;Bureau de la politique des archives et des bibliothèques
-Ministère de la Défense et des Anciens combattants, Direction du service national;;Ministère de la Défense;;Direction du service national
-Ministère de l'Ecologie, du Développement durable, des Transports et du Logement, Centre d'études sur les réseaux, les transports, l'urbanisme et les constructions publiques;;Ministère de l'Ecologie du Développement Durable et de l'Energie;;Centre d'études sur les réseaux, les transports, l'urbanisme et les constructions publiques
-Ministère de la Ville, Secrétariat général du Comité interministériel des villes;;Ministère de l'Egalité des Territoires et du Logement;;Secrétariat général du Comité interministériel des villes
-Premier Ministre, Service d'information du Gouvernement;;Premier Ministre;;Service d'information du Gouvernement
-Premier Ministre, Commissaire général à l'investissement;;Premier Ministre;;Commissaire général à l'investissement
+Premier Ministre, Délégation interministérielle à l'aménagement du territoire et à l'attractivité régionale;; Premier Ministre;;Délégation interministérielle à l'aménagement du territoire et à l'attractivité régionale
+Premier Ministre, Direction de l'information légale et administrative;;Premier Ministre;;Direction de l'information légale et administrative
+Premier ministre, Direction interministérielle pour la modernisation de l'action publique;;Premier ministre;;Direction interministérielle pour la modernisation de l'action publique
 Premier Ministre, Mission interministérielle de vigilance et de lutte contre les dérives sectaires;;Premier Ministre;;Mission interministérielle de vigilance et de lutte contre les dérives sectaires
-Ministère de l'Enseignement supérieur et de la Recherche, Département des outils d'aide au pilotage;;Ministère de l'Enseignement supérieur et de la Recherche;;Département des outils d'aide au pilotage
+Premier ministre, Secrétariat général de la Direction de l'information légale et administrative;;Premier ministre;;Secrétariat général de la Direction de l'information légale et administrative
+Premier Ministre, Secrétariat général du Gouvernement;;Premier Ministre;;Secrétariat général du Gouvernement
+Premier ministre, Secrétariat général pour la modernisation de l'action publique;;Premier ministre;;Secrétariat général pour la modernisation de l'action publique
+Premier Ministre, Secrétariat général pour la modernisation de l'action publique (SGMAP);;Premier Ministre;;Secrétariat général pour la modernisation de l'action publique (SGMAP)
+Premier Ministre, Secrétariat général;;Premier Ministre;;Secrétariat général
+Premier Ministre, Service d'information du Gouvernement;;Premier Ministre;;Service d'information du Gouvernement
+Régie autonome des transports parisien (RATP);; Régie autonome des transports parisiens (RATP);;
+Régie autonome des transports parisiens (RATP);;;;

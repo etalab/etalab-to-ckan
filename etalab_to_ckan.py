@@ -171,8 +171,18 @@ title_merging_rules = {
                 ),
             ],
         },
-    u"Institut national des hautes études de la sécurité et de la justice, Département Observatoire national de la délinquance et des réponses pénales": {
-        None: [
+    u"Institut National de l'Information Géographique et Forestière": {
+        u"Inventaire forestier national": [
+            (
+                re.compile(ur"(?i)(?P<core>.+?) (?P<year>\d{4})$"),
+                extract_merged_package_title,
+                'year',
+                make_merged_package_resources_cleaner('year'),
+                ),
+            ],
+        },
+    u"Institut national des hautes études de la sécurité et de la justice": {
+        u"Département Observatoire national de la délinquance et des réponses pénales": [
             (
                 re.compile(ur"(?i)(?P<core>Faits constatés annuels par index 4001 et par département) en (?P<year>\d{4})$"),
                 extract_merged_package_title,
@@ -234,14 +244,6 @@ title_merging_rules = {
                 make_merged_package_resources_cleaner('year'),
                 ),
             ],
-        u"Inventaire forestier national": [
-            (
-                re.compile(ur"(?i)(?P<core>.+?) (?P<year>\d{4})$"),
-                extract_merged_package_title,
-                'year',
-                make_merged_package_resources_cleaner('year'),
-                ),
-            ],
         u"Mission de la stratégie et des systèmes d'information": [
             (
                 re.compile(ur"(?i)(?P<core>.+?) à la rentrée (?P<year>\d{4})$"),
@@ -257,13 +259,21 @@ title_merging_rules = {
                 ),
             ],
         },
-    u"Ministère de l'Economie et des Finances": {
+    u"Ministère de l'Économie et des Finances": {
         u"Bureau de la veille économique et des prix": [
             (
                 re.compile(ur"(?i)(?P<core>Observatoire des prix et des marges .+) (?P<month>[^ ]+) (?P<year>\d{4})$"),
                 extract_merged_package_title,
                 'year',
                 make_merged_package_resources_cleaner('year', 'month'),
+                ),
+            ],
+        u"Direction du budget": [
+            (
+                re.compile(ur"(?i)Jaune (?P<year>\d{4}) - Personnels Cabinets Ministériels - (?P<detail>.+)$"),
+                lambda match: u'Jaune - Personnels des cabinets ministériels',
+                'year',
+                make_merged_package_resources_cleaner('year', 'detail'),
                 ),
             ],
         u"Direction générale de la concurrence, de la consommation et de la répression des fraudes": [
@@ -325,16 +335,8 @@ title_merging_rules = {
                 make_merged_package_resources_cleaner('year'),
                 ),
             ],
-        u"Ministère du Budget, des Comptes publics et de la Réforme de l'Etat, Direction du budget": [
-            (
-                re.compile(ur"(?i)Jaune (?P<year>\d{4}) - Personnels Cabinets Ministériels - (?P<detail>.+)$"),
-                lambda match: u'Jaune - Personnels des cabinets ministériels',
-                'year',
-                make_merged_package_resources_cleaner('year', 'detail'),
-                ),
-            ],
         },
-    u"Ministère de l'Education Nationale": {
+    u"Ministère de l'Éducation nationale": {
         None: [
             (
                 re.compile(ur"(?i)(?P<core>.+?) ?- ?actualisation (?P<year>\d{4})$"),
@@ -793,7 +795,7 @@ def main():
                             package_name, dict(merged_package_title = package['notes'])))
                         break
 
-#            elif organization_title == u"Ministère de l'Economie et des Finances":
+#            elif organization_title == u"Ministère de l'Économie et des Finances":
 #                if service_title == u"Études statistiques en matière fiscale":
 #                    match = re.match(ur'(?i)REI (?P<year>\d{4}) (?P<department>.+)$', package_title)
 #                    if match is not None:

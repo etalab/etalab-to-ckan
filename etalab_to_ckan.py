@@ -262,7 +262,7 @@ title_merging_rules = {
     u"Ministère de l'Économie et des Finances": {
         u"Bureau de la veille économique et des prix": [
             (
-                re.compile(ur"(?i)(?P<core>Observatoire des prix et des marges .+) (?P<month>[^ ]+) (?P<year>\d{4})$"),
+                re.compile(ur"(?i)(?P<core>Observatoire des prix et des marges .+?) (- )?(?P<month>[^ ]+) (?P<year>\d{4})$"),
                 extract_merged_package_title,
                 'year',
                 make_merged_package_resources_cleaner('year', 'month'),
@@ -354,6 +354,16 @@ title_merging_rules = {
                 ),
             ],
         },
+    u"Ministère de l’Enseignement Supérieur et de la Recherche": {
+        u"Département des outils d'aide au pilotage": [
+            (
+                re.compile(ur"(?i)(?P<core>.+?) (?P<year>\d{4})-(?P<next_year>\d{4})$"),
+                extract_merged_package_title,
+                'school-year',
+                make_merged_package_resources_cleaner('year', 'next_year'),
+                ),
+            ],
+        },
     u"Ministère de l'Intérieur": {
         u"Direction générale des collectivités locales": [
             (
@@ -361,6 +371,22 @@ title_merging_rules = {
                 extract_merged_package_title,
                 'year',
                 make_merged_package_resources_cleaner('year'),
+                ),
+            ],
+        },
+    u"Ministère de la Culture et de la Communication": {
+        u"Médiathèque de l'architecture et du patrimoine": [
+            (
+                re.compile(ur"(?i)(?P<core>Liste des Immeubles protégés au titre des Monuments Historiques) - (?P<region>.+)$"),
+                extract_merged_package_title,
+                None,
+                make_merged_package_resources_cleaner('region'),
+                ),
+            (
+                re.compile(ur"(?i)(?P<core>Liste des objets mobiliers propriété publique classés au titre des Monuments Historiques) - (?P<region>.+)$"),
+                extract_merged_package_title,
+                None,
+                make_merged_package_resources_cleaner('region'),
                 ),
             ],
         },

@@ -73,8 +73,8 @@ Ministère de l'Economie, des Finances et de l'Industrie, Inspection générale 
 Ministère de l'Economie, des Finances et de l'Industrie, Institut national de la statistique et des études économiques (INSEE);; Institut National de la Statistique et des Etudes Economiques (INSEE);;
 Ministère de l'Economie, des Finances et de l'Industrie;;Ministère de l'Économie et des Finances;;
 Ministère de l'Economie, des Finances et de l'Industrie, Service des affaires multilatérales et du développement;;Ministère de l'Économie et des Finances;;Service des affaires multilatérales et du développement
-Ministère de l'Économie et des Finances, Bureau CL 2A. Conseil fiscal et valorisation financière du secteur public local;;Ministère de l'Économie et des Finances;;Bureau CL 2A. Conseil fiscal et valorisation financière du secteur public local
-Ministère de l'Économie et des Finances, Bureau de la veille économique et des prix - Bureau 1B;;Ministère de l'Économie et des Finances;;Bureau de la veille économique et des prix - Bureau 1B
+Ministère de l'Économie et des Finances, Bureau CL 2A. Conseil fiscal et valorisation financière du secteur public local;;Ministère de l'Économie et des Finances;;Conseil fiscal et valorisation financière du secteur public local
+Ministère de l'Économie et des Finances, Bureau de la veille économique et des prix - Bureau 1B;;Ministère de l'Économie et des Finances;;Bureau de la veille économique et des prix
 Ministère de l'Économie et des Finances, Direction du budget;;Ministère de l'Économie et des Finances;;Direction du budget
 Ministère de l'Économie et des Finances, Direction générale du Trésor;;Ministère de l'Économie et des Finances;;Direction générale du Trésor
 Ministère de l'Économie et des Finances, Inspection générale des finances;;Ministère de l'Économie et des Finances;;Inspection générale des finances

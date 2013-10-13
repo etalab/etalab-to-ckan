@@ -680,9 +680,10 @@ def main():
                 u'Accéder au service de téléchargement': None,
                 u'Télécharger': None,
                 }.get(resource_name, resource_name)
+            format = data.get('Format')
             resources.append(dict(
                 created = entry.get(u'Date de publication'),
-                format = data.get('Format'),
+                format = format.upper() if format is not None else None,
                 last_modified = entry.get(u'Date de dernière modification'),
                 name = resource_name,
                 # package_id (string) – id of package that the resource needs should be added to.

@@ -677,6 +677,9 @@ def main():
         frequency = entry.get(u'Fréquence de mise à jour')
         if frequency is not None:
             frequency = frequency.lower()
+            frequency = {
+                u"au fil de l'eau": u"ponctuelle",
+                }.get(frequency, frequency)
         license_id = conv.check(conv.pipe(
             conv.test_in(license_id_by_title),
             conv.translate(license_id_by_title)

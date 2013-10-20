@@ -113,6 +113,10 @@ group_id_by_name = {}
 group_name_by_organization_name = {}
 grouped_packages = {}
 html_parser = etree.HTMLParser()
+ignored_organization_infos_by_name = {
+    u'bouches-du-rhone-tourisme': dict(delete_packages = True),
+    u'institut-national-de-l-information-geographique-et-forestiere': dict(delete_packages = False),
+    }
 license_id_by_title = {
     u'Licence CC-BY 3.0': u'cc-by',
     u'Licence CC-BY-SA 2.0': u'cc-by-sa',
@@ -665,6 +669,8 @@ def main():
         else:
             organization_title, service_title = organization_titles
         organization_name = strings.slugify(organization_title)[:100]
+        if organization_name in ignored_organization_infos_by_name:
+            continue
         organization_id = organization_id_by_name.get(organization_name, UnboundLocalError)
         if organization_id is UnboundLocalError:
             organization_id = upsert_organization(title = organization_title)
@@ -949,13 +955,16 @@ def main():
             response_dict = json.loads(response.read())
             existing_package = response_dict['result']
 
-            # TODO: To replace with package_purge when it is available.
-            request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
-                '/api/3/action/package_delete?id={}'.format(package_name)), headers = ckan_headers)
-            response = urllib2.urlopen(request, urllib.quote(json.dumps(existing_package)))
-            response_dict = json.loads(response.read())
-#            deleted_package = response_dict['result']
-#            pprint.pprint(deleted_package)
+            ignored_organization_infos = ignored_organization_infos_by_name.get(
+                existing_package.get('organization', {}).get('name'))
+            if ignored_organization_infos is None or ignored_organization_infos['delete_packages']:
+                # TODO: To replace with package_purge when it is available.
+                request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
+                    '/api/3/action/package_delete?id={}'.format(package_name)), headers = ckan_headers)
+                response = urllib2.urlopen(request, urllib.quote(json.dumps(existing_package)))
+                response_dict = json.loads(response.read())
+#                deleted_package = response_dict['result']
+#                pprint.pprint(deleted_package)
 
     if args.reset:
         print 'Obsolete groups: {}'.format(existing_groups_name)

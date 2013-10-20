@@ -379,10 +379,18 @@ title_merging_rules = {
             ],
         },
     u"Ministère de la Culture et de la Communication": {
+        u"Département de l'enseignement supérieur, de la recherche et de la technologie": [
+            (
+                re.compile(ur"(?i)(?P<core>Patrimoine Numérique, catalogue des collections numérisées) - (?P<area>.+)$"),
+                extract_merged_package_title,
+                None,
+                make_merged_package_resources_cleaner('area'),
+                ),
+            ],
         u"Médiathèque de l'architecture et du patrimoine": [
             (
-                re.compile(ur"(?i)(?P<core>Liste des Immeubles protégés au titre des Monuments Historiques) - (?P<region>.+)$"),
-                extract_merged_package_title,
+                re.compile(ur"(?i)(?P<core>Liste des Immeubles protégés au titre des Monuments? Historiques) - (?P<region>.+)$"),
+                lambda match: u" des Immeubles protégés au titre des Monuments Historiques",  # Correct typo
                 None,
                 make_merged_package_resources_cleaner('region'),
                 ),

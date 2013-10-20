@@ -1259,7 +1259,16 @@ def upsert_package(name, package):
                 for existing_group in (existing_package.get('groups') or [])
                 ]
             if existing_groups:
-                package['groups'] = existing_groups
+                if package.get('groups'):
+                    groups = package['groups']
+                    for existing_group in existing_groups:
+                        if not any(
+                                group['id'] == existing_group['id']
+                                for group in groups
+                                ):
+                            groups.append(existing_group)
+                else:
+                    package['groups'] = existing_groups
 
             request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
                 'api/3/action/package_update?id={}'.format(name)), headers = ckan_headers)

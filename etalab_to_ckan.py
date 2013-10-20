@@ -948,7 +948,7 @@ def main():
     for package_name, package in package_by_name.iteritems():
         upsert_package(package_name, package)
 
-    print 'Obsolete packages: {}'.format(existing_packages_name)
+    print 'Obsolete or ignored packages: {}'.format(existing_packages_name)
     if not args.dry_run:
         for package_name in existing_packages_name:
             # Retrieve package id (needed for delete).

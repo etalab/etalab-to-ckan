@@ -56,14 +56,20 @@ def extract_merged_package_title(match):
 
 
 def make_merged_package_resources_cleaner(*fields):
-    def cleanup_merged_package_resources(package, vars, same_notes = False):
+    def cleanup_merged_package_resources(merged_package, package, vars, same_notes = False):
         if same_notes:
             resource_description = None
         else:
             resource_description = package.get('notes')
             # Set to empty string instead of None (or removing it) to ensure that previous value in CKAN is erased.
             package['notes'] = u''
-        for resource_index, resource in enumerate(package['resources']):
+        merged_resources_by_url = dict(
+            (resource['url'], resource)
+            for resource in merged_package['resources']
+            if resource.get('url')
+            ) if merged_package is not None else {}
+        resource_index = 0
+        for resource in package['resources'][:]:
             if resource_index == 0 and resource_description:
                 if resource.get('description'):
                     resource['description'] = u'{}\n\n{}'.format(resource_description, resource['description'])
@@ -77,6 +83,14 @@ def make_merged_package_resources_cleaner(*fields):
                     resource_name_fragments.append(u'document {}'.format(resource_index + 1))
             else:
                 resource_name_fragments.append(resource['name'])
+            if resource.get('url') and resource['url'] in merged_resources_by_url:
+                # Resource exists in several packages. Keep only the one in merged_resources
+                existing_resource = merged_resources_by_url[resource['url']]
+                # Remove fields from resource name.
+                existing_resource['name'] = u' - '.join(resource_name_fragments)
+                # Don't add new resource.
+                del package['resources'][resource_index]
+                continue
             for field in fields:
                 field_value = vars.get(field)
                 if field_value and not any(
@@ -93,6 +107,7 @@ def make_merged_package_resources_cleaner(*fields):
 #                    resource_name_fragments[0] = resource_name_fragments[0][:-char_count_to_remove] + u'...'
 #                resource_name = u' - '.join(resource_name_fragments)
             resource['name'] = resource_name
+            resource_index += 1
 
     return cleanup_merged_package_resources
 
@@ -921,25 +936,29 @@ def main():
                         original_first_resource_name = package['resources'][0]['name']
                         if merged_package_resources_cleaner is None:
                             merged_package_resources_cleaner = make_merged_package_resources_cleaner()
-                        merged_package_resources_cleaner(package, vars, same_notes = same_notes)
+                        merged_package_resources_cleaner(merged_package, package, vars, same_notes = same_notes)
 
-                        if package_index == 0:
-                            merged_package = package.copy()
-                            merged_package['title'] = vars['merged_package_title']
-                            merged_package['name'] = merged_package_name = u'{}-00000000'.format(
-                                strings.slugify(merged_package['title'])[:100 - len(u'00000000') - 1])
-                            set_package_extra(merged_package, u'territorial_coverage', u'Country/FR')
-                            package_by_name[merged_package_name] = merged_package
+                        if package['resources']:
+                            if package_index == 0:
+                                merged_package = package.copy()
+                                merged_package['title'] = vars['merged_package_title']
+                                merged_package['name'] = merged_package_name = u'{}-00000000'.format(
+                                    strings.slugify(merged_package['title'])[:100 - len(u'00000000') - 1])
+                                set_package_extra(merged_package, u'territorial_coverage', u'Country/FR/France')
+                                package_by_name[merged_package_name] = merged_package
+                            else:
+                                if repetition_type is not None:
+                                    merged_package[u'temporal_coverage_from'] = min(
+                                        merged_package[u'temporal_coverage_from'],
+                                        package[u'temporal_coverage_from'])
+                                    merged_package[u'temporal_coverage_to'] = max(
+                                        merged_package[u'temporal_coverage_to'],
+                                        package[u'temporal_coverage_to'])
+                                merged_package['resources'].extend(package['resources'])
+                            merged_first_resource_name = package['resources'][0]['name']
                         else:
-                            if repetition_type is not None:
-                                merged_package[u'temporal_coverage_from'] = min(
-                                    merged_package[u'temporal_coverage_from'],
-                                    package[u'temporal_coverage_from'])
-                                merged_package[u'temporal_coverage_to'] = max(
-                                    merged_package[u'temporal_coverage_to'],
-                                    package[u'temporal_coverage_to'])
-                            merged_package['resources'].extend(package['resources'])
-                        merged_first_resource_name = package['resources'][0]['name']
+                            original_first_resource_name = None
+                            merged_first_resource_name = None
                     else:
                         original_first_resource_name = None
                         merged_first_resource_name = None

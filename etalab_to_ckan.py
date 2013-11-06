@@ -131,6 +131,7 @@ html_parser = etree.HTMLParser()
 ignored_organization_infos_by_name = {
     u'bouches-du-rhone-tourisme': dict(delete_packages = True),
     u'institut-national-de-l-information-geographique-et-forestiere': dict(delete_packages = False),
+    u'regie-autonome-des-transports-parisiens-ratp': dict(delete_packages = True),
     }
 license_id_by_title = {
     u'Licence CC-BY 3.0': u'cc-by',
@@ -402,10 +403,18 @@ title_merging_rules = {
                 make_merged_package_resources_cleaner('area'),
                 ),
             ],
+        u"Département de la politique des publics": [
+            (
+                re.compile(ur"(?i)(?P<core>Fréquentation 2006-2010 des Musées de France) - (?P<region>.+)$"),
+                extract_merged_package_title,
+                None,
+                make_merged_package_resources_cleaner('region'),
+                ),
+            ],
         u"Médiathèque de l'architecture et du patrimoine": [
             (
                 re.compile(ur"(?i)(?P<core>Liste des Immeubles protégés au titre des Monuments? Historiques) - (?P<region>.+)$"),
-                lambda match: u" des Immeubles protégés au titre des Monuments Historiques",  # Correct typo
+                lambda match: u"Liste des Immeubles protégés au titre des Monuments Historiques",  # Correct typo
                 None,
                 make_merged_package_resources_cleaner('region'),
                 ),

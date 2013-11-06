@@ -561,7 +561,15 @@ def main():
     html_element = etree.fromstring(response.read(), html_parser)
     for organization_element in html_element.iterfind('.//div[@class="resultatliste_item clearfix"]'):
         title = organization_element.findtext('section[@class="detail"]/h2/a')
-        description = organization_element.findtext('section[@class="detail"]/p')
+        description_element = organization_element.find('section[@class="detail"]/p')
+        description = u'\n'.join(
+            fragment
+            for fragment in [description_element.text] + [
+                br_element.tail
+                for br_element in description_element.findall('br')
+                ]
+            if fragment
+            )
         image_url = urlparse.urljoin('http://www.data.gouv.fr/',
             organization_element.find('section[@class="annexe"]/img').get('src'))
         new_organization_by_name[strings.slugify(title)[:100]] = dict(

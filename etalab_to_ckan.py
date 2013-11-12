@@ -136,6 +136,10 @@ ignored_organization_infos_by_name = {
     u'institut-national-de-l-information-geographique-et-forestiere': dict(delete_packages = False),
     u'regie-autonome-des-transports-parisiens-ratp': dict(delete_packages = True),
     }
+kept_packages_name = [
+    # List of packages that should not be modified when they already exist.
+    u'liste-des-immeubles-proteges-au-titre-des-monuments-historiques-00000000',
+    ]
 license_id_by_title = {
     u'Licence CC-BY 3.0': u'cc-by',
     u'Licence CC-BY-SA 2.0': u'cc-by-sa',
@@ -1326,27 +1330,28 @@ def upsert_package(name, package):
                 else:
                     package['groups'] = existing_groups
 
-            request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
-                'api/3/action/package_update?id={}'.format(name)), headers = ckan_headers)
-            try:
-                response = urllib2.urlopen(request, urllib.quote(json.dumps(package)))
-            except urllib2.HTTPError as response:
-                response_text = response.read()
-                log.error(u'An exception occured while updating package: {0}'.format(package))
+            if name not in kept_packages_name:
+                request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
+                    'api/3/action/package_update?id={}'.format(name)), headers = ckan_headers)
                 try:
-                    response_dict = json.loads(response_text)
-                except ValueError:
-                    log.error(response_text)
+                    response = urllib2.urlopen(request, urllib.quote(json.dumps(package)))
+                except urllib2.HTTPError as response:
+                    response_text = response.read()
+                    log.error(u'An exception occured while updating package: {0}'.format(package))
+                    try:
+                        response_dict = json.loads(response_text)
+                    except ValueError:
+                        log.error(response_text)
+                        raise
+                    for key, value in response_dict.iteritems():
+                        log.debug('{} = {}'.format(key, value))
                     raise
-                for key, value in response_dict.iteritems():
-                    log.debug('{} = {}'.format(key, value))
-                raise
-            else:
-                assert response.code == 200
-                response_dict = json.loads(response.read())
-                assert response_dict['success'] is True
-#                updated_package = response_dict['result']
-#                pprint.pprint(updated_package)
+                else:
+                    assert response.code == 200
+                    response_dict = json.loads(response.read())
+                    assert response_dict['success'] is True
+#                    updated_package = response_dict['result']
+#                    pprint.pprint(updated_package)
     return package
 
 

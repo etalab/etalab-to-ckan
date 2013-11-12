@@ -145,8 +145,8 @@ license_id_by_title = {
     u'Licence CC-BY-SA 2.0': u'cc-by-sa',
     u'Licence Ouverte/Open Licence': u'fr-lo',
     }
-organization_group_line_re = re.compile(ur'(?P<organization>.+)\s+\d+\s+(?P<group>.+)$')
 log = logging.getLogger(app_name)
+organization_group_line_re = re.compile(ur'(?P<organization>.+)\s+\d+\s+(?P<group>.+)$')
 package_by_name = {}
 packages_merge = []
 new_organization_by_name = {}
@@ -311,7 +311,6 @@ title_merging_rules = {
                 make_merged_package_resources_cleaner('year', 'month'),
                 ),
             ],
-
         u"Études statistiques en matière fiscale": [
             (
                 re.compile(ur"(?i)(?P<core>Imp[oôÔ]t sur le revenu) (?P<year>\d{4}) (?P<department>.+)$"),

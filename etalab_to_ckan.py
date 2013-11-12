@@ -844,7 +844,7 @@ def main():
         territorial_coverage = entry.get(u'Territoires couverts')
         if territorial_coverage:
             set_package_extra(package, u'territorial_coverage', u','.join(
-                u'{}/{}/{}'.format(territory.kind, territory.code, territory.main_postal_distribution)
+                u'{}/{}/{}'.format(territory.__class__.__name__, territory.code, territory.main_postal_distribution)
                 for territory in (
                     territories.Territory.find_one(territory_spec)
                     for territory_spec in territorial_coverage

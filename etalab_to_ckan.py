@@ -45,6 +45,9 @@ import urlparse
 from biryani1 import baseconv, custom_conv, datetimeconv, states, strings
 from ckantoolbox import ckanconv
 from lxml import etree
+import pymongo
+from suq import monpyjama
+from territoria2 import territories
 import wenoio
 
 
@@ -479,6 +482,9 @@ def main():
     args = parser.parse_args()
     logging.basicConfig(level = logging.DEBUG if args.verbose else logging.WARNING, stream = sys.stdout)
 
+    monpyjama.Wrapper.db = pymongo.Connection().souk
+    territories.Territory.collection_name = 'territories'
+
     config_parser = ConfigParser.SafeConfigParser(dict(here = os.path.dirname(args.config)))
     config_parser.read(args.config)
     global conf
@@ -835,8 +841,11 @@ def main():
         territorial_coverage = entry.get(u'Territoires couverts')
         if territorial_coverage:
             set_package_extra(package, u'territorial_coverage', u','.join(
-                u'{}/{}/{}'.format(territory['kind'], territory['code'], territory['name'])
-                for territory in territorial_coverage
+                u'{}/{}/{}'.format(territory.kind, territory.code, territory.main_postal_distribution)
+                for territory in (
+                    territories.Territory.find_one(territory_spec)
+                    for territory_spec in territorial_coverage
+                    )
                 ))
 
         assert package_name not in package_by_name, package_name
@@ -961,7 +970,7 @@ def main():
                                 merged_package['title'] = vars['merged_package_title']
                                 merged_package['name'] = merged_package_name = u'{}-00000000'.format(
                                     strings.slugify(merged_package['title'])[:100 - len(u'00000000') - 1])
-                                set_package_extra(merged_package, u'territorial_coverage', u'Country/FR/France')
+                                set_package_extra(merged_package, u'territorial_coverage', u'Country/FR/FRANCE')
                                 package_by_name[merged_package_name] = merged_package
                             else:
                                 if repetition_type is not None:

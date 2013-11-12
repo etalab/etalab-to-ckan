@@ -1202,7 +1202,17 @@ def upsert_organization(description = None, image_url = None, title = None):
         response_dict = json.loads(response.read())
         existing_organization = response_dict['result']
 
+        organization_infos = organization
+        organization = conv.check(conv.ckan_input_organization_to_output_organization)(existing_organization,
+            state = conv.default_state)
+        organization.update(
+            (key, value)
+            for key, value in organization_infos.iteritems()
+            if value is not None
+            )
         organization['id'] = existing_organization['id']
+        organization['state'] = 'active'
+
         if not args.dry_run:
             request = urllib2.Request(urlparse.urljoin(conf['ckan.site_url'],
                 '/api/3/action/organization_update?id={}'.format(name)), headers = ckan_headers)

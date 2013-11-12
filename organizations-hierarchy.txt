@@ -1,3 +1,4 @@
+Autorité de contrôle prudentiel, Agent comptable;;Autorité de contrôle prudentiel;;Agent comptable
 Caisse nationale de solidarité pour l'autonomie;;;;
 Conseil général de Loir-et-Cher;;;;
 Conseil général du Loir et Cher;;Conseil général de Loir-et-Cher;;
@@ -19,8 +20,10 @@ Ministère de la Culture et de la Communication, Département des programmes num
 Ministère de la Culture et de la Communication, Direction générale des médias et des industries culturelles;;Ministère de la Culture et de la Communication;;Direction générale des médias et des industries culturelles
 Ministère de la Culture et de la Communication, Direction générale des patrimoines;;Ministère de la Culture et de la Communication;;Direction générale des patrimoines
 Ministère de la Culture et de la Communication, Médiathèque de l'architecture et du patrimoine;;Ministère de la Culture et de la Communication;;Médiathèque de l'architecture et du patrimoine
+Ministère de la Culture et de la Communication, Mission de l'inventaire général du patrimoine culturel;;Ministère de la Culture et de la Communication;;Mission de l'inventaire général du patrimoine culturel
 Ministère de la Culture et de la Communication, Mission de la communication interne;;Ministère de la Culture et de la Communication;;Mission de la communication interne
 Ministère de la Culture et de la Communication, Service du livre et de la lecture;;Ministère de la Culture et de la Communication;;Service du livre et de la lecture
+Ministère de la Culture et de la Communication, Service interministériel des Archives de France;;Ministère de la Culture et de la Communication;;Service interministériel des Archives de France
 Ministère de la Culture et de la Communication, Sous-direction des affaires financières;;Ministère de la Culture et de la Communication;;Sous-direction des affaires financières
 Ministère de la Défense;;;;
 Ministère de la Défense, Caisse nationale militaire de sécurité sociale;;Ministère de la Défense;;Caisse nationale militaire de sécurité sociale
@@ -114,8 +117,9 @@ Ministère des Affaires sociales et de la Santé;;;;
 Ministère des Affaires sociales et de la Santé, Direction de la recherche, des études, de l'évaluation et des statistiques;;Ministère des Affaires sociales et de la Santé;;Direction de la recherche, des études, de l'évaluation et des statistiques
 Ministère des Affaires sociales et de la Santé, Direction générale de l'offre de soins;;Ministère des Affaires sociales et de la Santé;;Direction générale de l'offre de soins
 Ministère des Sports, de la Jeunesse, de l'Education populaire et de la vie associative;;;;
+Ministère des Sports, de la Jeunesse, de l'Éducation populaire et de la Vie associative, Comité d'histoire des ministères chargés de la Jeunesse et des Sports;;Ministère des Sports, de la Jeunesse, de l'Éducation populaire et de la Vie associative;;Comité d'histoire des ministères chargés de la Jeunesse et des Sports
 Ministère des Sports, de la Jeunesse, de l'Éducation populaire et de la Vie associative, Direction de la jeunesse, de l'éducation populaire et de la vie associative;;Ministère des Sports, de la Jeunesse, de l'Éducation populaire et de la Vie associative;;Direction de la jeunesse, de l'éducation populaire et de la vie associative
-Ministère des Sports;;Ministère des Sports, de la Jeunesse, de l'Education populaire et de la vie associative;;
+Ministère des Sports;;Ministère des Sports, de la Jeunesse, de l'Éducation populaire et de la Vie associative;;
 Ministère du Budget, des Comptes publics et de la Réforme de l'Etat, 1e Sous-direction;;Ministère de l'Économie et des Finances;;Ministère du Budget, 1e Sous-direction
 Ministère du Budget, des Comptes publics et de la Réforme de l'Etat, Bureau CL 2A. Conseil fiscal et valorisation financière du secteur public local;;Ministère de l'Économie et des Finances;;Conseil fiscal et valorisation financière du secteur public local
 Ministère du Budget, des Comptes publics et de la Réforme de l'Etat, Bureau GF 3C. Études statistiques en matière fiscale;;Ministère de l'Économie et des Finances;;Études statistiques en matière fiscale

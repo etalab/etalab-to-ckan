@@ -134,7 +134,9 @@ html_parser = etree.HTMLParser()
 ignored_organization_infos_by_name = {
     u'bouches-du-rhone-tourisme': dict(delete_packages = True),
     u'institut-national-de-l-information-geographique-et-forestiere': dict(delete_packages = False),
+    u'ministere-de-la-culture-et-de-la-communication': dict(delete_packages = False),
     u'regie-autonome-des-transports-parisiens-ratp': dict(delete_packages = True),
+    u'societe-nationale-des-chemins-de-fer-francais': dict(delete_packages = True),
     }
 kept_packages_name = [
     # List of packages that should not be modified when they already exist.

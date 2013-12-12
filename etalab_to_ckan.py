@@ -490,7 +490,9 @@ def main():
     monpyjama.Wrapper.db = pymongo.Connection().souk
     territories.Territory.collection_name = 'territories'
 
-    config_parser = ConfigParser.SafeConfigParser(dict(here = os.path.dirname(args.config)))
+    config_parser = ConfigParser.SafeConfigParser(dict(
+        here = os.path.dirname(os.path.abspath(os.path.normpath(args.config))),
+        ))
     config_parser.read(args.config)
     global conf
     conf = conv.check(conv.pipe(
